@@ -1,6 +1,8 @@
 # AQ for Problem Solving (AQ-PS)
 
-AQ-PS is a fork work of the original Go playing bot [AQ](https://github.com/ymgaq/AQ). AQ-PS is a bot that does not play the games of Go, but solving life and death problems.  
+AQ-PS is a fork work of the original Go playing bot [AQ](https://github.com/ymgaq/AQ). AQ-PS is a bot that does not play the game of Go, but solves life and death problems.  
+  
+AQ-PS is in development, and is currently not good at solving problems of advanced level. So I might only keep it for personal use.
 
 ## Requirement
 ### Windows

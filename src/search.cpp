@@ -1087,7 +1087,6 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 			//    Search in parallel with thread_cnt threads.
 			ParallelSearch(thinking_time, b, is_ponder);
 			SortChildrenByRollout(pn, rc);
-			cerr << "SortChildrenByRollout result: " << rc[0]->move << "\n";
 
 			// d. 1位の手と2位の手の試行回数が1.5倍以内のとき、思考時間を延長する
 			//    Extend thinking time when the trial number of first move
@@ -1146,7 +1145,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 	// 8. 直前の手がパスのとき自分もパスをするか調べる
 	//    Check whether pass should be returned. (Japanese rule)
-	if(japanese_rule && b.prev_move[b.her] == PASS){
+	if (japanese_rule && b.prev_move[b.her] == PASS) {
 		Board b_cpy;
 		int win_cnt = 0;
 		int playout_cnt = 1000;
@@ -1169,7 +1168,6 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		// Return pass if the winning rate > 70%.
 		if((double)win_cnt / playout_cnt > 0.7){
 			win_rate = (double)win_cnt / playout_cnt;
-			cerr << "play pass\n";
 			return PASS;
 		}
 	}
@@ -1182,6 +1180,16 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 		if (win_sign > 0) std::swap(rc[0], rc[1]);
 	}
+
+	double rollout_winrate_0 = ((double)rc[0]->rollout_win / (rc[0]->rollout_cnt + 1) + 1) / 2;
+	double rollout_winrate_1 = ((double)rc[1]->rollout_win / (rc[1]->rollout_cnt + 1) + 1) / 2;
+	if ((rollout_winrate_0 > 0.99 && rollout_winrate_1 > 0.99)
+		|| (rollout_winrate_0 < 0.01 && rollout_winrate_1 < 0.01))
+	{
+		win_rate = rollout_winrate_0;
+		return PASS;
+	}
+
 
 	// 10. 勝率を更新. Update winning_rate.
 	win_rate = BranchRate(rc[0]);
@@ -1197,7 +1205,6 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		PrintLog(log_path, "%s", ss.str().c_str());
 	}
 
-	cerr << "SearchTree result: " << rc[0]->move << "\n";
 	return rc[0]->move;
 
 }
@@ -1459,11 +1466,9 @@ void Tree::ParallelSearch(double time_limit, Board& b, bool is_ponder){
 
 	for(int i=0;i<thread_cnt;++i){
 		if(i < gpu_cnt){
-			cerr << "into one ThreadEvaluate\n";
 			ths[i] = std::thread(&Tree::ThreadEvaluate, this, time_limit, i, is_ponder);
 		}
 		else{
-			cerr << "into one ThreadSearchBranch\n";
 			ths[i] = std::thread(&Tree::ThreadSearchBranch, this, std::ref(b_[i - gpu_cnt]), time_limit, i - gpu_cnt, is_ponder);
 		}
 	}
