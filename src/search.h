@@ -15,7 +15,7 @@
 #include "node.h"
 
 // Flag to use only CPU.
-//#define CPU_ONLY
+#define CPU_ONLY
 
 /**************************************************************
  *
@@ -45,7 +45,8 @@ public:
 	//const int node_limit = 32771;	// ~1.3GB
 	//const int node_limit = 16411;	// ~650MB
 #else
-	const int node_limit = 16411;	// ~650MB
+	const int node_limit = 32771;	// ~1.3GB
+	//const int node_limit = 16411;	// ~650MB
 #endif
 
 	std::unordered_map<int64, int> node_hash_list;
@@ -131,7 +132,11 @@ public:
 
 void PrintLog(std::string log_path, const char* output_text, ...);
 void SortChildren(Node* pn, std::vector<Child*>& child_list);
+void SortChildrenByRollout(Node* pn, std::vector<Child*>& child_list);
 std::string CoordinateString(int v);
+
+// AQ-PS
+extern double cfg_heat;
 
 extern double cfg_main_time;
 extern double cfg_byoyomi;

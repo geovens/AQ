@@ -1,4 +1,5 @@
 #include "playout.h"
+#include <iostream>
 
 #define forEach4Nbr(v_origin,v_nbr,block)		\
 	int v_nbr;									\
@@ -99,16 +100,18 @@ int Win(Board& b, int pl, double komi) {
 			}
 		}
 	}
-
 	for (auto i: rtoe) {
 		int stone_color = b.color[i] - 2;
-		if (!visited[i] && (stone_color >= 0)) {
+		if (!visited[i] && (stone_color >= 0))
+		{
 			visited[i] = true;
-			++score[stone_color];
-			forEach4Nbr(i, v_nbr, {
-				if (!visited[v_nbr] && b.color[v_nbr] == 0) {
+			score[stone_color] += i == importance ? 1000 : 1;
+			forEach4Nbr(i, v_nbr, 
+			{
+				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
+				{
 					visited[v_nbr] = true;
-					++score[stone_color];
+					score[stone_color] += v_nbr == importance ? 1000 : 1;
 				}
 			});
 		}
@@ -232,19 +235,23 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 		}
 	}
 
-	for (auto i: rtoe) {
+	for (auto i: rtoe) 
+	{
 		int stone_color = b.color[i] - 2;
-		if (!visited[i] && stone_color >= 0) {
+		if (!visited[i] && stone_color >= 0) 
+		{
 			visited[i] = true;
-			++score[stone_color];
-			++stat.owner[stone_color][i];
+			score[stone_color] += i == importance ? 1000 : 1;
+			stat.owner[stone_color][i] += i == importance ? 1000 : 1;
 			++stat.stone[stone_color][i];
 			is_stone[stone_color][i] = true;
-			forEach4Nbr(i, v_nbr, {
-				if (!visited[v_nbr] && b.color[v_nbr] == 0) {
+			forEach4Nbr(i, v_nbr, 
+			{
+				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
+				{
 					visited[v_nbr] = true;
-					++score[stone_color];
-					++stat.owner[stone_color][v_nbr];
+					score[stone_color] += v_nbr == importance ? 1000 : 1;
+					stat.owner[stone_color][v_nbr] += v_nbr == importance ? 1000 : 1;
 				}
 			});
 		}
@@ -366,15 +373,19 @@ double Score(Board& b, double komi) {
 		}
 	}
 
-	for (auto i: rtoe) {
+	for (auto i: rtoe) 
+	{
 		int stone_color = b.color[i] - 2;
-		if (!visited[i] && stone_color >= 0) {
+		if (!visited[i] && stone_color >= 0) 
+		{
 			visited[i] = true;
-			++score[stone_color];
-			forEach4Nbr(i, v_nbr, {
-				if (!visited[v_nbr] && b.color[v_nbr] == 0) {
+			score[stone_color] += i == importance ? 1000 : 1;
+			forEach4Nbr(i, v_nbr, 
+			{
+				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
+				{
 					visited[v_nbr] = true;
-					++score[stone_color];
+					score[stone_color] += v_nbr == importance ? 1000 : 1;
 				}
 			});
 		}

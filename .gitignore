@@ -1,0 +1,12 @@
+vs/build
+vs/bin
+vs/tensorflow/lib
+
+*.pdb
+*.ipdb
+*.iobj
+*.exp
+*.sdf
+*.suo
+*.opensdf
+*.opendb

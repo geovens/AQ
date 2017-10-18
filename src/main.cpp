@@ -65,6 +65,8 @@ void ReadConfiguration(int argc, char **argv){
 				case 15: resume_sgf_path 	= str; break;
 				case 16: cfg_worker_cnt 	= stoi(str); break;
 				case 17: use_pondering 	= (str == "true" || str == "on"); break;
+				case 18: cfg_heat		= stod(str); break;
+				case 19: importance		= stoi(str); break;
 				default: break;
 			}
 			++line_cnt;
@@ -98,15 +100,18 @@ void SelfMatch() {
 		win_rate = 0.5;
 
 		while (b.move_cnt<720) {
+			std::cerr << b.move_cnt << "\n";
 			next_move = tree.SearchTree(b, 0.0, win_rate, true, false);
 			b.PlayLegal(next_move);
 			PrintBoard(b, next_move);
 			PrintBoard(b, next_move, log_path);
 			if (next_move==PASS && prev_move==PASS) break;
 			prev_move = next_move;
+			//getchar();
 		}
 
 		tree.PrintResult(b);
+		getchar();
 	}
 
 }

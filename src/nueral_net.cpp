@@ -16,59 +16,115 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 		std::vector<std::array<double,EBVCNT>>& prob_list,
 		double temp, int sym_idx)
 {
+	if (importance > 0)
+	{
+		prob_list.clear();
+		int ft_cnt = (int)ft_list.size();
+		
+		for (int i = 0; i < ft_cnt; ++i) {
+			std::array<double, EBVCNT> prob;
+			prob.fill(0.0);
 
-	prob_list.clear();
-	int ft_cnt = (int)ft_list.size();
-	Tensor pn_x(DT_FLOAT, TensorShape({ft_cnt, BVCNT, feature_cnt}));
-	auto x_eigen = pn_x.tensor<float, 3>();
-	Tensor sm_temp(DT_FLOAT, TensorShape());
-	sm_temp.scalar<float>()() = (float)temp;
+			double sumprob = 0;
+			for (int j = 0; j < BVCNT; ++j) {
+				int v = rtoe[j];
 
-	std::vector<std::pair<string, Tensor>> inputs;
-	std::vector<Tensor> outputs;
+				// AQ-PS
+				if (importance > 0)
+				{
+					int dist = std::max(abs(etox[v] - etox[importance]), abs(etoy[v] - etoy[importance]));
+					if (dist < 4)
+					{
+						prob[v] = 0.06;
+					}
+					else if (dist < 8)
+					{
+						prob[v] = 0.03;
+					}
+					else if (dist < 12)
+					{
+						prob[v] = 0.01;
+					}
+					else
+					{
+						prob[v] = 0.003;
+					}
+				}
 
-	std::vector<int> sym_idxs;
-	if(sym_idx > 7){
-		for(int i=0;i<ft_cnt;++i){
-			sym_idxs.push_back(mt_int8(mt_32));
-		}
-	}
+				sumprob += prob[v];
 
-	for(int i=0;i<ft_cnt;++i){
-		for(int j=0;j<BVCNT;++j){
-			for(int k=0;k<feature_cnt;++k){
-
-				if(sym_idx == 0) x_eigen(i, j, k) = ft_list[i].feature[j][k];
-				else if(sym_idx > 7) x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idxs[i]][j][0]][k];
-				else x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idx][j][0]][k];
+				// 3線より中央側のシチョウを逃げる手の確率を下げる
+				// Reduce probability of moves escaping from Ladder.
+				if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
 
 			}
+
+			// normalization
+			for (int j = 0; j < BVCNT; ++j) {
+				int v = rtoe[j];
+				prob[v] /= sumprob;
+			}
+
+			prob_list.push_back(prob);
 		}
 	}
+	else
+	{
 
-	inputs = {{"x_input", pn_x},{"temp", sm_temp}};
-	sess->Run(inputs,{"fc/yfc"},{}, &outputs);
+		prob_list.clear();
+		int ft_cnt = (int)ft_list.size();
+		Tensor pn_x(DT_FLOAT, TensorShape({ ft_cnt, BVCNT, feature_cnt }));
+		auto x_eigen = pn_x.tensor<float, 3>();
+		Tensor sm_temp(DT_FLOAT, TensorShape());
+		sm_temp.scalar<float>()() = (float)temp;
 
-	auto output_v = outputs[0].matrix<float>();
+		std::vector<std::pair<string, Tensor>> inputs;
+		std::vector<Tensor> outputs;
 
-	for(int i=0;i<ft_cnt;++i){
-		std::array<double, EBVCNT> prob;
-		prob.fill(0.0);
-
-		for(int j=0;j<BVCNT;++j){
-			int v = rtoe[j];
-
-			if(sym_idx == 0) prob[v] = (double)output_v(i, j);
-			else if(sym_idx > 7) prob[v] = (double)output_v(i, sv.rv[sym_idxs[i]][j][1]);
-			else prob[v] = (double)output_v(i, sv.rv[sym_idx][j][1]);
-
-			// 3線より中央側のシチョウを逃げる手の確率を下げる
-			// Reduce probability of moves escaping from Ladder.
-			if(ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
+		std::vector<int> sym_idxs;
+		if (sym_idx > 7) {
+			for (int i = 0; i < ft_cnt; ++i) {
+				sym_idxs.push_back(mt_int8(mt_32));
+			}
 		}
-		prob_list.push_back(prob);
-	}
 
+		for (int i = 0; i < ft_cnt; ++i) {
+			for (int j = 0; j < BVCNT; ++j) {
+				for (int k = 0; k < feature_cnt; ++k) {
+
+					if (sym_idx == 0) x_eigen(i, j, k) = ft_list[i].feature[j][k];
+					else if (sym_idx > 7) x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idxs[i]][j][0]][k];
+					else x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idx][j][0]][k];
+
+				}
+			}
+		}
+
+		inputs = { {"x_input", pn_x},{"temp", sm_temp} };
+		sess->Run(inputs, { "fc/yfc" }, {}, &outputs);
+
+		auto output_v = outputs[0].matrix<float>();
+
+		for (int i = 0; i < ft_cnt; ++i) {
+			std::array<double, EBVCNT> prob;
+			prob.fill(0.0);
+
+			for (int j = 0; j < BVCNT; ++j) {
+				int v = rtoe[j];
+
+				if (sym_idx == 0) prob[v] = (double)output_v(i, j);
+				else if (sym_idx > 7) prob[v] = (double)output_v(i, sv.rv[sym_idxs[i]][j][1]);
+				else prob[v] = (double)output_v(i, sv.rv[sym_idx][j][1]);
+
+				// 3線より中央側のシチョウを逃げる手の確率を下げる
+				// Reduce probability of moves escaping from Ladder.
+				if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
+
+			}
+
+			prob_list.push_back(prob);
+		}
+	}
 }
 
 

@@ -17,6 +17,8 @@
  *****************************************************/
 
 
+extern int importance;
+
 // é¿î’ñ ÇÃÉTÉCÉY
 // Size of real board.
 constexpr int BSIZE = 19;

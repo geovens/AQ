@@ -201,6 +201,25 @@ int CallGTP(){
 			SendGTP("= \n\n");
 			fprintf(stderr, "set komi=%.1f.\n", tree.komi);
 		}
+		else if (FindStr(gtp_str, "important"))
+		{
+			SplitString(gtp_str, " ", split_list);
+			if (split_list[0] == "=") split_list.erase(split_list.begin());
+			string str_x = split_list[1].substr(0, 1);
+			string str_y = split_list[1].substr(1);
+
+			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
+
+			int x = int(x_list.find(str_x)) % 19 + 1;
+			int y = stoi(str_y);
+
+			importance = xytoe[x][y];
+
+			if (is_master) cluster.SendCommand(gtp_str);
+
+			SendGTP("= \n\n");
+			fprintf(stderr, "set importance=%d\n", importance);
+		}
 		else if (FindStr(gtp_str, "time_left"))
 		{
 			// c‚èŠÔ‚ğİ’è‚·‚é
@@ -225,6 +244,7 @@ int CallGTP(){
 			// "=genmove b", "=genmove white", ...
 
 			auto t1 = std::chrono::system_clock::now();
+			cerr << "importance=" << importance << "\n";
 			cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;
@@ -275,7 +295,7 @@ int CallGTP(){
 				// b. Å‘Pè‚ğ‹‚ß‚é.
 				//    Search for the best move.
 				next_move = tree.SearchTree(b, 0.0, win_rate, true, false);
-
+				cerr << "tree.SearchTree: " << next_move << "\n";
 				if(	is_master && next_move != PASS 	&&
 					b.prev_move[b.her] != PASS		&&
 					(tree.left_time > 25 || tree.byoyomi != 0))
@@ -283,6 +303,7 @@ int CallGTP(){
 					// ‡‹c‚ÌŒ‹‰Ê‚ğ”½‰f‚·‚é
 					// Reflect the result of consultation.
 					next_move = cluster.Consult(tree, tree.log_path);
+					cerr << "cluster.Consult: " << next_move << "\n";
 				}
 			}
 
