@@ -1,14 +1,14 @@
-### Hardware setting ###
-# Set number of 1-8 for 'gpu count'.
-# 'thread count' is number of the total usable threads.
--gpu count =1
--thread count =4
+﻿### Hardware setting ###
+# Set number of 0 for 'gpu count'.
+# 'thread count' is fixed on AQ-mini.
+-gpu count =0
+-thread count =3
 
 ### Time contorol setting ###
 # If using 'time_left' command via GTP,
 # set 'time controll' to 'off'.
--main　time[sec] =0
--byoyomi[sec] =5
+-main time[sec] =0
+-byoyomi[sec] =4
 -time controll =on
 
 ### Thinking setting ###
@@ -19,11 +19,15 @@
 -never resign =off
 
 ### Others ###
--self match =off
+-self match =on
 -save log =on
 -master =off
 -worker =off
 -pb path =pb
 -resume sgf path =
 -worker count =1
--use pondering =on
+-use pondering =off
+
+### AQ-PS ###
+-heat =1.0
+-default keypoint =220
