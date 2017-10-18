@@ -16,7 +16,7 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 		std::vector<std::array<double,EBVCNT>>& prob_list,
 		double temp, int sym_idx)
 {
-	if (importance > 0)
+	if (false && importance > 0)
 	{
 		prob_list.clear();
 		int ft_cnt = (int)ft_list.size();
@@ -51,12 +51,11 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 					}
 				}
 
-				sumprob += prob[v];
-
 				// 3線より中央側のシチョウを逃げる手の確率を下げる
 				// Reduce probability of moves escaping from Ladder.
 				if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
 
+				sumprob += prob[v];
 			}
 
 			// normalization
@@ -109,6 +108,7 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 			std::array<double, EBVCNT> prob;
 			prob.fill(0.0);
 
+			double sumprob = 0;
 			for (int j = 0; j < BVCNT; ++j) {
 				int v = rtoe[j];
 
@@ -116,10 +116,43 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 				else if (sym_idx > 7) prob[v] = (double)output_v(i, sv.rv[sym_idxs[i]][j][1]);
 				else prob[v] = (double)output_v(i, sv.rv[sym_idx][j][1]);
 
+				if (importance > 0)
+				{
+					int dist = std::max(abs(etox[v] - etox[importance]), abs(etoy[v] - etoy[importance]));
+					if (dist < 4)
+					{
+						if (prob[v] > 0.03)
+							prob[v] = 0.12;
+						else
+							prob[v] *= 4;
+					}
+					else if (dist < 8)
+					{
+						if (prob[v] > 0.05)
+							prob[v] = 0.1;
+						else
+							prob[v] *= 2;
+					}
+					else
+					{
+						if (prob[v] > 0.1)
+							prob[v] = 0.05;
+						else
+							prob[v] = 0.005;
+					}
+				}
+
 				// 3線より中央側のシチョウを逃げる手の確率を下げる
 				// Reduce probability of moves escaping from Ladder.
 				if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
 
+				sumprob += prob[v];
+			}
+
+			// normalization
+			for (int j = 0; j < BVCNT; ++j) {
+				int v = rtoe[j];
+				prob[v] /= sumprob;
 			}
 
 			prob_list.push_back(prob);

@@ -1086,7 +1086,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 			// c. thread_cnt個のスレッドで並列探索を行う
 			//    Search in parallel with thread_cnt threads.
 			ParallelSearch(thinking_time, b, is_ponder);
-			SortChildrenByRollout(pn, rc);
+			SortChildren(pn, rc);
 
 			// d. 1位の手と2位の手の試行回数が1.5倍以内のとき、思考時間を延長する
 			//    Extend thinking time when the trial number of first move
@@ -1330,7 +1330,6 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
 		// 1. value_queを処理. Process value_que.
 		if(value_que_cnt > 0){
-			cerr << "value_que not empty?\n";
 			int eval_cnt = 0;
 			{
 				std::lock_guard<std::mutex> lock(mtx_vque);
@@ -1588,7 +1587,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 	std::vector<Child*> rc;
 	// temp
 	//SortChildren(pn, rc);
-	SortChildrenByRollout(pn, rc);
+	SortChildren(pn, rc);
 
 	ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
 
