@@ -801,6 +801,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 			// c. プレイアウトし、結果を[-1.0, 1.0]に規格化
 			//    Roll out and normalize the result to [-1.0, 1.0].
 			rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias);
+			//rollout_result = -2.0 * ((double)PlayoutRandom(b, komi) + win_bias);
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
 		}
 	}
@@ -1026,8 +1027,8 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 				pn->total_game_cnt > 1000 &&
 				(win_rate < 0.08 || win_rate > 0.92);
 
-		if(stand_out || enough_game || almost_win)
-		{
+		if(false && (stand_out || enough_game || almost_win))
+		{		
 			// Skip search.
 			if(is_errout){
 				PrintLog(log_path, "move cnt=%d: left time=%.1f[sec]\n%d[nodes]\n", 

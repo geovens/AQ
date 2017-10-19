@@ -161,6 +161,8 @@ int CallGTP(){
 			SendGTP("set_free_handicap\n");
 			SendGTP("gogui-play_sequence\n");
 			SendGTP("gogui-analyze_commands\n");
+			SendGTP("keypoint\n");
+			SendGTP("showboard\n");
 			SendGTP("= \n\n");
 		}
 		else if (FindStr(gtp_str, "clear_board"))
@@ -186,6 +188,10 @@ int CallGTP(){
 
 			SendGTP("= \n\n");
 			cerr << "clear board." << endl;
+		}
+		else if (FindStr(gtp_str, "showboard"))
+		{
+			PrintBoard(b, b.prev_move[b.her]);
 		}
 		else if (FindStr(gtp_str, "komi"))
 		{
@@ -218,7 +224,6 @@ int CallGTP(){
 			if (is_master) cluster.SendCommand(gtp_str);
 
 			SendGTP("= \n\n");
-			fprintf(stderr, "set importance=%d\n", importance);
 		}
 		else if (FindStr(gtp_str, "time_left"))
 		{
@@ -238,7 +243,8 @@ int CallGTP(){
 
 			SendGTP("= \n\n");
 		}
-		else if (FindStr(gtp_str, "genmove")) {
+		// temp
+		else if (FindStr(gtp_str, "genmove") || FindStr(gtp_str, "g ")) {
 			// 次の手を考えて送信する.
 			// Think and send the next move.
 			// "=genmove b", "=genmove white", ...
@@ -462,6 +468,15 @@ int CallGTP(){
 			b.Clear();
 			tree.Clear();
 			sgf.Clear();
+
+			// temp
+			if (resume_sgf_path != "") {
+				SgfData sgf_read;
+				sgf_read.ImportData(resume_sgf_path);
+				sgf_read.GenerateBoard(b, sgf_read.move_cnt);
+				sgf = sgf_read;
+			}
+
 			if(is_master) cluster.SendCommand("clear_board");
 
 			// b. 局面を一手前まで進める.
@@ -493,6 +508,23 @@ int CallGTP(){
 			}
 
 			// d. GTPコマンドを送信. Send GTP response.
+			SendGTP("= \n\n");
+		}
+		else if (FindStr(gtp_str, "restore")) {
+			b.Clear();
+			tree.Clear();
+			sgf.Clear();
+
+			// temp
+			if (resume_sgf_path != "") {
+				SgfData sgf_read;
+				sgf_read.ImportData(resume_sgf_path);
+				sgf_read.GenerateBoard(b, sgf_read.move_cnt);
+				sgf = sgf_read;
+			}
+
+			tree.UpdateRootNode(b);
+
 			SendGTP("= \n\n");
 		}
 		else if(FindStr(gtp_str, "final_score")) {
@@ -629,6 +661,31 @@ int CallGTP(){
 			else{
 				tree.main_time = (double)stoi(split_list[2]);
 				tree.left_time = tree.main_time;
+			}
+
+			SendGTP("= \n\n");
+		}
+		// temp
+		else if (FindStr(gtp_str, "time_settings") || FindStr(gtp_str, "ts "))
+		{
+			// 時間を設定する
+			// Set main and byoyomi time.
+			// "=kgs-time_settings byoyomi 30 60 3", ...
+			SplitString(gtp_str, " ", split_list);
+			if (split_list[0] == "=") split_list.erase(split_list.begin());
+
+			if (split_list.size() >= 4)
+			{
+				tree.main_time = (double)stoi(split_list[1]);
+				tree.left_time = tree.main_time;
+				tree.byoyomi = (double)stoi(split_list[2]);
+				int perstone = stoi(split_list[3]);
+				if (perstone > 0) 
+					tree.byoyomi /= perstone;
+			}
+			else if (split_list.size() == 2)
+			{
+				tree.byoyomi = (double)stoi(split_list[1]);
 			}
 
 			SendGTP("= \n\n");

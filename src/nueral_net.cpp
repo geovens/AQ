@@ -136,9 +136,9 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 					else
 					{
 						if (prob[v] > 0.1)
-							prob[v] = 0.05;
-						else
 							prob[v] = 0.005;
+						else
+							prob[v] = 0.001;
 					}
 				}
 

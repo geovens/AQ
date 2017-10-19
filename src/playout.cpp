@@ -242,7 +242,7 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 		{
 			visited[i] = true;
 			score[stone_color] += i == importance ? 1000 : 1;
-			stat.owner[stone_color][i] += i == importance ? 1000 : 1;
+			stat.owner[stone_color][i] += 1;// i == importance ? 1000 : 1;
 			++stat.stone[stone_color][i];
 			is_stone[stone_color][i] = true;
 			forEach4Nbr(i, v_nbr, 
@@ -251,7 +251,7 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 				{
 					visited[v_nbr] = true;
 					score[stone_color] += v_nbr == importance ? 1000 : 1;
-					stat.owner[stone_color][v_nbr] += v_nbr == importance ? 1000 : 1;
+					stat.owner[stone_color][v_nbr] += 1;// v_nbr == importance ? 1000 : 1;
 				}
 			});
 		}
@@ -406,6 +406,7 @@ double Score(Board& b, double komi) {
  *
  *  Play until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
+ *  Not called at all.
  */
 int Playout(Board& b, double komi) {
 
@@ -439,6 +440,7 @@ int Playout(Board& b, double komi) {
  *
  *  Play with random moves until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
+ *  Not called at all.
  */
 int PlayoutRandom(Board& b, double komi) {
 
