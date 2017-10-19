@@ -667,8 +667,12 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		// d. action value‚ð‹‚ß‚é
 		//    Calculate action value.
 		game_cnt = use_rollout? (double)pc->rollout_cnt : (double)pc->value_cnt;
-		action_value = rate + cp * pc->prob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
-		action_value += (double)rand() / RAND_MAX * cfg_heat;
+		double tmpprob = sqrt(pc->prob);
+		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
+		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
+
+		if (abs(etox[pc->move] - etox[importance]) > 8 || abs(etoy[pc->move] - etoy[importance]) > 8)
+			action_value -= 1;
 
 		// e. max_idx‚ðXV. Update max_idx.
 		if (action_value > max_avalue) {

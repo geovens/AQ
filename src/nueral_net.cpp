@@ -121,17 +121,17 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 					int dist = std::max(abs(etox[v] - etox[importance]), abs(etoy[v] - etoy[importance]));
 					if (dist < 4)
 					{
-						//if (prob[v] < 0.02)
-						//	prob[v] = 0.02;
+						//if (prob[v] > 0.2)
+						//	prob[v] = 0.2;
 					}
 					else if (dist < 8)
 					{
-						//if (prob[v] < 0.01)
-						//	prob[v] = 0.01;
+						//if (prob[v] > 0.2)
+						//	prob[v] = 0.2;
 					}
 					else
 					{
-						//prob[v] = 0.001;
+						prob[v] = 0;
 					}
 				}
 
