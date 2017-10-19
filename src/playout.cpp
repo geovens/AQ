@@ -105,13 +105,17 @@ int Win(Board& b, int pl, double komi) {
 		if (!visited[i] && (stone_color >= 0))
 		{
 			visited[i] = true;
-			score[stone_color] += i == importance ? 1000 : 1;
+			//score[stone_color] += i == importance ? 1000 : 1;
+			double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+			score[stone_color] += 10 / (dist + 1) - 2;
 			forEach4Nbr(i, v_nbr, 
 			{
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
-					score[stone_color] += v_nbr == importance ? 1000 : 1;
+					//score[stone_color] += v_nbr == importance ? 1000 : 1;
+					double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+					score[stone_color] += 10 / (dist + 1) - 2;
 				}
 			});
 		}
@@ -241,8 +245,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 		if (!visited[i] && stone_color >= 0) 
 		{
 			visited[i] = true;
-			score[stone_color] += i == importance ? 1000 : 1;
-			stat.owner[stone_color][i] += 1;// i == importance ? 1000 : 1;
+			//score[stone_color] += i == importance ? 1000 : 1;
+			double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+			score[stone_color] += 10 / (dist + 1) - 2;
+			++stat.owner[stone_color][i];
 			++stat.stone[stone_color][i];
 			is_stone[stone_color][i] = true;
 			forEach4Nbr(i, v_nbr, 
@@ -250,8 +256,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
-					score[stone_color] += v_nbr == importance ? 1000 : 1;
-					stat.owner[stone_color][v_nbr] += 1;// v_nbr == importance ? 1000 : 1;
+					//score[stone_color] += v_nbr == importance ? 1000 : 1;
+					double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+					score[stone_color] += 10 / (dist + 1) - 2;
+					++stat.owner[stone_color][v_nbr];
 				}
 			});
 		}
@@ -379,13 +387,17 @@ double Score(Board& b, double komi) {
 		if (!visited[i] && stone_color >= 0) 
 		{
 			visited[i] = true;
-			score[stone_color] += i == importance ? 1000 : 1;
+			//score[stone_color] += i == importance ? 1000 : 1;
+			double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+			score[stone_color] += 10 / (dist + 1) - 2;
 			forEach4Nbr(i, v_nbr, 
 			{
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
-					score[stone_color] += v_nbr == importance ? 1000 : 1;
+					//score[stone_color] += v_nbr == importance ? 1000 : 1;
+					double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+					score[stone_color] += 10 / (dist + 1) - 2;
 				}
 			});
 		}

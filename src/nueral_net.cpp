@@ -123,6 +123,8 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 					{
 						if (prob[v] > 0.03)
 							prob[v] = 0.12;
+						else if (prob[v] < 0.01)
+							prob[v] = 0.04;
 						else
 							prob[v] *= 4;
 					}
@@ -130,15 +132,17 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 					{
 						if (prob[v] > 0.05)
 							prob[v] = 0.1;
+						else if (prob[v] < 0.01)
+							prob[v] = 0.02;
 						else
 							prob[v] *= 2;
 					}
 					else
 					{
 						if (prob[v] > 0.1)
-							prob[v] = 0.005;
+							prob[v] = 0.01;
 						else
-							prob[v] = 0.001;
+							prob[v] = 0;
 					}
 				}
 

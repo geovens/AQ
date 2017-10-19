@@ -131,7 +131,7 @@ void Tree::Clear(){
 #ifdef CPU_ONLY
 	thread_cnt = cfg_thread_cnt;
 	gpu_cnt = 1;
-	expand_cnt = 64;
+	expand_cnt = 16;
 #else
 	thread_cnt = (cfg_thread_cnt > cfg_gpu_cnt) ? cfg_thread_cnt : cfg_gpu_cnt + 1;
 	gpu_cnt = cfg_gpu_cnt;
@@ -728,8 +728,13 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 	{
 		// 置換表が8割埋まっているときは新規作成しない
 		// New node is not chreated when the transposition table is filled by 80%.
-		if(node_cnt < 0.8 * node_limit) expand_node = true;
-		else need_rollout = true;
+		if(node_cnt < 0.8 * node_limit) 
+			expand_node = true;
+		else
+		{
+			need_rollout = true;
+			cerr << "node full\n";
+		}
 	}
 
 	// 6. 局面を進める. Play next_mvoe.
@@ -957,7 +962,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 	// 3. lambdaを進行度に合わせて調整 (0.8 -> 0.5)
 	//    Adjust lambda to progress.
-	lambda = 0.0;// 0.8 - std::min(0.3, std::max(0.0, ((double)b.move_cnt - 160) / 600));
+	//lambda = 0.0;// 0.8 - std::min(0.3, std::max(0.0, ((double)b.move_cnt - 160) / 600));
 	//lambda = 0.7 - std::min(0.4, std::max(0.0, ((double)b.move_cnt - 160) / 500));
 	//cp = 3.0;
 	//expand_cnt = 18;
