@@ -2,13 +2,13 @@
 # Set number of 0 for 'gpu count'.
 # 'thread count' is fixed on AQ-mini.
 -gpu count =0
--thread count =3
+-thread count =5
 
 ### Time contorol setting ###
 # If using 'time_left' command via GTP,
 # set 'time controll' to 'off'.
 -main time[sec] =0
--byoyomi[sec] =4
+-byoyomi[sec] =30
 -time controll =on
 
 ### Thinking setting ###
@@ -19,7 +19,7 @@
 -never resign =off
 
 ### Others ###
--self match =on
+-self match =off
 -save log =on
 -master =off
 -worker =off
@@ -29,5 +29,5 @@
 -use pondering =off
 
 ### AQ-PS ###
--heat =1.0
+-heat =0.0
 -default keypoint =220

@@ -131,7 +131,7 @@ void Tree::Clear(){
 #ifdef CPU_ONLY
 	thread_cnt = cfg_thread_cnt;
 	gpu_cnt = 1;
-	expand_cnt = 16;
+	expand_cnt = 32;
 #else
 	thread_cnt = (cfg_thread_cnt > cfg_gpu_cnt) ? cfg_thread_cnt : cfg_gpu_cnt + 1;
 	gpu_cnt = cfg_gpu_cnt;
@@ -145,7 +145,7 @@ void Tree::Clear(){
 
 	vloss_cnt = 3;
 	lambda = 0.0;// 0.7;
-	cp = 1.0;// 2.0;
+	cp = 2.0;
 	policy_temp = 0.7;
 
 	Tree::InitBoard();

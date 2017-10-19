@@ -207,7 +207,7 @@ int CallGTP(){
 			SendGTP("= \n\n");
 			fprintf(stderr, "set komi=%.1f.\n", tree.komi);
 		}
-		else if (FindStr(gtp_str, "keypoint"))
+		else if (FindStr(gtp_str, "keypoint") || FindStr(gtp_str, "keypoing"))
 		{
 			SplitString(gtp_str, " ", split_list);
 			if (split_list[0] == "=") split_list.erase(split_list.begin());
@@ -244,7 +244,7 @@ int CallGTP(){
 			SendGTP("= \n\n");
 		}
 		// temp
-		else if (FindStr(gtp_str, "genmove") || FindStr(gtp_str, "g ")) {
+		else if (FindStr(gtp_str, "genmove") || FindStr(gtp_str, "gm ")) {
 			// Ÿ‚Ìè‚ğl‚¦‚Ä‘—M‚·‚é.
 			// Think and send the next move.
 			// "=genmove b", "=genmove white", ...
