@@ -45,8 +45,8 @@ public:
 	//const int node_limit = 32771;	// ~1.3GB
 	//const int node_limit = 16411;	// ~650MB
 #else
-	const int node_limit = 32771;	// ~1.3GB
-	//const int node_limit = 16411;	// ~650MB
+	//const int node_limit = 32771;	// ~1.3GB
+	const int node_limit = 16411;	// ~650MB
 #endif
 
 	std::unordered_map<int64, int> node_hash_list;

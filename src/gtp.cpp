@@ -657,6 +657,7 @@ int CallGTP(){
 				tree.main_time = (double)stoi(split_list[2]);
 				tree.left_time = tree.main_time;
 				tree.byoyomi = (double)stoi(split_list[3]);
+				cfg_byoyomi = (double)stoi(split_list[3]);
 			}
 			else{
 				tree.main_time = (double)stoi(split_list[2]);
@@ -682,10 +683,12 @@ int CallGTP(){
 				int perstone = stoi(split_list[3]);
 				if (perstone > 0) 
 					tree.byoyomi /= perstone;
+				cfg_byoyomi = tree.byoyomi;
 			}
 			else if (split_list.size() == 2)
 			{
 				tree.byoyomi = (double)stoi(split_list[1]);
+				cfg_byoyomi = tree.byoyomi;
 			}
 
 			SendGTP("= \n\n");
