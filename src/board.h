@@ -359,8 +359,8 @@ public:
 	double sum_prob_rank[2][BSIZE];
 
 	// AQ-PS
-	// ko penalty
-	//double ko_penalty;
+	// score penalty if a ko is played. used to discorrage kos.
+	double ko_penalty;
 
 	Board();
 	Board(const Board& other);

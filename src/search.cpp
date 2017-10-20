@@ -753,11 +753,10 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 	// temp
 	bool ko_taken = false;
 	b.PlayLegal(next_move, &ko_taken);
-	//if (ko_taken)
-	//{
-	//	b.ko_penalty += penalty_each_ko;
-	//	std::cerr << "a ko just happened? penalty = " << b.ko_penalty << "\n";
-	//}
+	if (ko_taken)
+	{
+		b.ko_penalty += penalty_each_ko;
+	}
 
 	// 7. ƒm[ƒh‚ð“WŠJ‚·‚é
 	//    Expand the next node.
@@ -829,8 +828,8 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 			// seams like rollout_result is positive when 'I' win?
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias); // <- original!!!
 			rollout_result = -PlayoutLGR(b, lgr_, stat_, komi) * win_bias; // <- temp test!
-			//rollout_result -= b.ko_penalty / 100;
-			//rollout_result = -2.0 * ((double)PlayoutRandom(b, komi) + win_bias);
+			rollout_result -= b.ko_penalty / 100;
+			//rollout_result = -PlayoutRandom(b, komi) * win_bias;
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
 		}
 	}

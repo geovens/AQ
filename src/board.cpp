@@ -115,7 +115,7 @@ Board& Board::operator=(const Board& other) {
 	std::memcpy(pass_cnt, other.pass_cnt, sizeof(pass_cnt));
 
 	// AQ-PS
-	//ko_penalty = other.ko_penalty;
+	ko_penalty = other.ko_penalty;
 
 	return *this;
 
@@ -134,7 +134,7 @@ void Board::Clear() {
 	her = 0;
 	empty_cnt = 0;
 
-	//ko_penalty = 0;
+	ko_penalty = 0;
 
 	FillArray(sum_prob_rank, 0.0);
 	FillArray(is_placed, false);
@@ -919,8 +919,8 @@ void Board::PlayLegal(int v, bool* ko_taken) {
 	//    Update Ko.
 	if (is_in_eye && prev_empty_cnt == empty_cnt) {
 		ko = empty[empty_cnt - 1];
-		//if (ko_taken != NULL)
-		//	*ko_taken = true;
+		if (ko_taken != NULL)
+			*ko_taken = true;
 	}
 
 	// 9. 着手連のアタリor２呼吸点情報を更新
@@ -1231,9 +1231,13 @@ int Board::SelectRandomMove() {
 
 		// 眼を埋めずセキでもない合法手か
 		// Break if next_move is legal and dosen't fill an eye and Seki.
+		// temp!!!
+		/*
 		if ( !IsEyeShape(my, next_move) 	&&
 			 IsLegal(my, next_move) 	&&
 			 !IsSeki(next_move)			) break;
+		*/
+		if (IsLegal(my, next_move) && !IsEyeShape(my, next_move)) break;
 
 		++i;
 		if(i == empty_cnt) i = 0;
@@ -1303,9 +1307,13 @@ int Board::SelectMove() {
 
 		// c. 眼を埋めずセキでもない合法手か
 		//    Break if next_move is legal and dosen't fill an eye or Seki.
+		// temp!!!
+		/*
 		if (IsLegal(my, next_move) 		&&
 			!IsEyeShape(my, next_move) 	&&
 			!IsSeki(next_move)			) break;
+		*/
+		if (IsLegal(my, next_move) && !IsEyeShape(my, next_move)) break;
 
 		// d. 合法手でないとき、next_moveの確率を除いて再計算する
 		//    Recalculate after subtracting probability of next_move.

@@ -499,8 +499,10 @@ int PlayoutRandom(Board& b, double komi) {
 	}
 
 	// Return the result.
-	return Win(b, pl, komi);
+	//return Win(b, pl, komi);
 
+	double score = Score(b, komi);
+	return -score / 50;
 }
 
 /**
