@@ -671,8 +671,11 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
 
-		if (abs(etox[pc->move] - etox[importance]) > 8 || abs(etoy[pc->move] - etoy[importance]) > 8)
-			action_value -= 1;
+		if (importance > 0)
+		{
+			if (abs(etox[pc->move] - etox[importance]) > 8 || abs(etoy[pc->move] - etoy[importance]) > 8)
+				action_value -= 1;
+		}
 
 		// e. max_idxを更新. Update max_idx.
 		if (action_value > max_avalue) {
@@ -807,9 +810,13 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 					b.ReplaceProb(1, v, (double)npn->prob_roll[1][v]);
 				}
 			}
+
+			// temp
 			// c. プレイアウトし、結果を[-1.0, 1.0]に規格化
 			//    Roll out and normalize the result to [-1.0, 1.0].
-			rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias);
+			// seams like rollout_result if always 1 if white wins no matter whoes turn it is?
+			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias); // <- original!!!
+			rollout_result = -PlayoutLGR(b, lgr_, stat_, komi) * win_bias; // <- temp test!
 			//rollout_result = -2.0 * ((double)PlayoutRandom(b, komi) + win_bias);
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
 		}
@@ -1608,7 +1615,10 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 
 		if (game_cnt == 0) break;
 
-		double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
+		// temp
+		//double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
+		double rollout_rate = pc->rollout_win / std::max(1, (int)pc->rollout_cnt);
+		
 		double value_rate = (pc->value_win / std::max(1, (int)pc->value_cnt) + 1) / 2;
 		if(pc->value_win == 0.0) value_rate = 0;
 		if(pc->rollout_win == 0.0) rollout_rate = 0;

@@ -106,16 +106,26 @@ int Win(Board& b, int pl, double komi) {
 		{
 			visited[i] = true;
 			//score[stone_color] += i == importance ? 1000 : 1;
-			double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
-			score[stone_color] += 10 / (dist + 1) - 2;
+			if (importance > 0)
+			{
+				double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+				score[stone_color] += 10 / (dist + 1) - 1;
+			}
+			else
+				score[stone_color]++;
 			forEach4Nbr(i, v_nbr, 
 			{
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
 					//score[stone_color] += v_nbr == importance ? 1000 : 1;
-					double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
-					score[stone_color] += 10 / (dist + 1) - 2;
+					if (importance > 0)
+					{
+						double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+						score[stone_color] += 10 / (dist + 1) - 1;
+					}
+					else
+						score[stone_color]++;
 				}
 			});
 		}
@@ -246,8 +256,13 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 		{
 			visited[i] = true;
 			//score[stone_color] += i == importance ? 1000 : 1;
-			double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
-			score[stone_color] += 10 / (dist + 1) - 2;
+			if (importance > 0)
+			{
+				double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+				score[stone_color] += 10 / (dist + 1) - 1;
+			}
+			else
+				score[stone_color]++;
 			++stat.owner[stone_color][i];
 			++stat.stone[stone_color][i];
 			is_stone[stone_color][i] = true;
@@ -257,8 +272,13 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 				{
 					visited[v_nbr] = true;
 					//score[stone_color] += v_nbr == importance ? 1000 : 1;
-					double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
-					score[stone_color] += 10 / (dist + 1) - 2;
+					if (importance > 0)
+					{
+						double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+						score[stone_color] += 10 / (dist + 1) - 1;
+					}
+					else
+						score[stone_color]++;
 					++stat.owner[stone_color][v_nbr];
 				}
 			});
@@ -388,16 +408,26 @@ double Score(Board& b, double komi) {
 		{
 			visited[i] = true;
 			//score[stone_color] += i == importance ? 1000 : 1;
-			double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
-			score[stone_color] += 10 / (dist + 1) - 2;
+			if (importance > 0)
+			{
+				double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+				score[stone_color] += 10 / (dist + 1) - 1;
+			}
+			else
+				score[stone_color]++;
 			forEach4Nbr(i, v_nbr, 
 			{
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
 					//score[stone_color] += v_nbr == importance ? 1000 : 1;
-					double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
-					score[stone_color] += 10 / (dist + 1) - 2;
+					if (importance > 0)
+					{
+						double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+						score[stone_color] += 10 / (dist + 1) - 1;
+					}
+					else
+						score[stone_color]++;
 				}
 			});
 		}
@@ -480,7 +510,7 @@ int PlayoutRandom(Board& b, double komi) {
  *  Play with 'Last Good Reply' until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
  */
-int PlayoutLGR(Board& b, LGR& lgr, double komi)
+double PlayoutLGR(Board& b, LGR& lgr, double komi)
 {
 
 	int next_move;
@@ -596,7 +626,8 @@ int PlayoutLGR(Board& b, LGR& lgr, double komi)
  *  white wins: 0, black wins: 1 or -1.
  *  Updates game_cnt, stone_cnt and owner_cnt at the same time.
  */
-int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
+// temp: int -> double
+double PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
 {
 
 	int next_move;
@@ -684,6 +715,7 @@ int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
 	int win = Win(b, pl, stat, komi);
 	int win_pl = int(win != 0);
 	int lose_pl = int(win == 0);
+	double score = Score(b, komi);
 
 	for(auto& i:lgr_rollout_add[win_pl]){
 		lgr.rollout[win_pl][i[0]][i[1]] = i[2];
@@ -697,8 +729,9 @@ int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
 
 	// I‹Ç}‚ÌŸ”s‚ğ•Ô‚·
 	// Return the result.
-	return win;
-
+	// temp
+	//return win;
+	return -score / 50;
 }
 
 #undef forEach4Nbr

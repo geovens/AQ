@@ -211,15 +211,21 @@ int CallGTP(){
 		{
 			SplitString(gtp_str, " ", split_list);
 			if (split_list[0] == "=") split_list.erase(split_list.begin());
-			string str_x = split_list[1].substr(0, 1);
-			string str_y = split_list[1].substr(1);
 
-			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
+			if (split_list[1] == "0" || split_list[1] == "-1")
+				importance = -1;
+			else
+			{
+				string str_x = split_list[1].substr(0, 1);
+				string str_y = split_list[1].substr(1);
 
-			int x = int(x_list.find(str_x)) % 19 + 1;
-			int y = stoi(str_y);
+				string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
 
-			importance = xytoe[x][y];
+				int x = int(x_list.find(str_x)) % 19 + 1;
+				int y = stoi(str_y);
+
+				importance = xytoe[x][y];
+			}
 
 			if (is_master) cluster.SendCommand(gtp_str);
 
