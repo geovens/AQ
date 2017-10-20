@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <unordered_set>
+#include <iostream>
 
 #include "board.h"
 
@@ -113,6 +114,9 @@ Board& Board::operator=(const Board& other) {
 	std::memcpy(sum_prob_rank, other.sum_prob_rank, sizeof(sum_prob_rank));
 	std::memcpy(pass_cnt, other.pass_cnt, sizeof(pass_cnt));
 
+	// AQ-PS
+	//ko_penalty = other.ko_penalty;
+
 	return *this;
 
 }
@@ -129,6 +133,9 @@ void Board::Clear() {
 	my = 1;
 	her = 0;
 	empty_cnt = 0;
+
+	//ko_penalty = 0;
+
 	FillArray(sum_prob_rank, 0.0);
 	FillArray(is_placed, false);
 	FillArray(is_ptn_updated, false);
@@ -794,7 +801,7 @@ inline bool Board::IsSelfAtari(int pl, int v) const{
  *  Update the board with the move on position v.
  *  It is necessary to confirm in advance whether the move is legal.
  */
-void Board::PlayLegal(int v) {
+void Board::PlayLegal(int v, bool* ko_taken) {
 
 	assert(v <= PASS);
 	assert(v == PASS || color[v] == 0);
@@ -912,6 +919,8 @@ void Board::PlayLegal(int v) {
 	//    Update Ko.
 	if (is_in_eye && prev_empty_cnt == empty_cnt) {
 		ko = empty[empty_cnt - 1];
+		//if (ko_taken != NULL)
+		//	*ko_taken = true;
 	}
 
 	// 9. 着手連のアタリor２呼吸点情報を更新

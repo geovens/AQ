@@ -667,8 +667,13 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		// d. action valueを求める
 		//    Calculate action value.
 		game_cnt = use_rollout? (double)pc->rollout_cnt : (double)pc->value_cnt;
+		
 		double tmpprob = sqrt(pc->prob);
 		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
+
+		//if (b.ptn[pc->move].IsEnclosed(b.her))
+		//	action_value -= penalty_each_ko;
+		
 		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
 
 		if (importance > 0)
@@ -745,7 +750,14 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 	}
 
 	// 6. 局面を進める. Play next_mvoe.
-	b.PlayLegal(next_move);
+	// temp
+	bool ko_taken = false;
+	b.PlayLegal(next_move, &ko_taken);
+	//if (ko_taken)
+	//{
+	//	b.ko_penalty += penalty_each_ko;
+	//	std::cerr << "a ko just happened? penalty = " << b.ko_penalty << "\n";
+	//}
 
 	// 7. ノードを展開する
 	//    Expand the next node.
@@ -814,9 +826,10 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 			// temp
 			// c. プレイアウトし、結果を[-1.0, 1.0]に規格化
 			//    Roll out and normalize the result to [-1.0, 1.0].
-			// seams like rollout_result if always 1 if white wins no matter whoes turn it is?
+			// seams like rollout_result is positive when 'I' win?
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias); // <- original!!!
 			rollout_result = -PlayoutLGR(b, lgr_, stat_, komi) * win_bias; // <- temp test!
+			//rollout_result -= b.ko_penalty / 100;
 			//rollout_result = -2.0 * ((double)PlayoutRandom(b, komi) + win_bias);
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
 		}
@@ -1606,7 +1619,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 	//SortChildren(pn, rc);
 	SortChildren(pn, rc);
 
-	ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
+	ost << "|move|count  |value|score |prob |depth| best sequence" << endl;
 
 	for(int i=0;i<std::min((int)pn->child_cnt, 10);++i) {
 
@@ -1615,9 +1628,9 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 
 		if (game_cnt == 0) break;
 
-		// temp
+		// temp for score
 		//double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
-		double rollout_rate = pc->rollout_win / std::max(1, (int)pc->rollout_cnt);
+		double rollout_rate = 2 * (pn->pl - 0.5) * pc->rollout_win / std::max(1, (int)pc->rollout_cnt);
 		
 		double value_rate = (pc->value_win / std::max(1, (int)pc->value_cnt) + 1) / 2;
 		if(pc->value_win == 0.0) value_rate = 0;
@@ -1638,7 +1651,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 		if(pc->value_cnt == 0) ost << "|" << std::setw(5) << "N/A";
 		else ost << "|" << std::setw(5) << std::fixed << value_rate * 100;  //value
 		if(pc->rollout_cnt == 0) ost << "|" << std::setw(5) << "N/A";
-		else ost << "|" << std::setw(5) << std::fixed << rollout_rate * 100;  //roll
+		else ost << "|" << std::setw(6) << std::fixed << rollout_rate * 100;  //roll
 		ost << "|" << std::setw(5) << std::fixed << (double)pc->prob * 100;  //prob
 		ost.precision(prc);
 		ost << "|" << std::setw(5) << depth; //depth

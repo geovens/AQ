@@ -16,8 +16,9 @@
  *
  *****************************************************/
 
-
+// AQ-PS
 extern int importance;
+extern double penalty_each_ko;
 
 // é¿î’ñ ÇÃÉTÉCÉY
 // Size of real board.

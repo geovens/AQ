@@ -358,6 +358,10 @@ public:
 	// çsÇ≤Ç∆ÇÃämó¶ÇÃè¨åv. Sum of probability for each rank.
 	double sum_prob_rank[2][BSIZE];
 
+	// AQ-PS
+	// ko penalty
+	//double ko_penalty;
+
 	Board();
 	Board(const Board& other);
 	Board& operator=(const Board& other);
@@ -366,7 +370,7 @@ public:
 	bool IsEyeShape(int pl, int v) const;
 	bool IsFalseEye(int v) const;
 	bool IsSeki(int v) const;
-	void PlayLegal(int v);
+	void PlayLegal(int v, bool* ko_taken = NULL);
 	void ReplaceProb(int pl, int v, double new_prob);
 	void RecalcProbAll();
 	void AddProbPtn12();

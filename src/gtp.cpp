@@ -318,6 +318,8 @@ int CallGTP(){
 				}
 			}
 
+			// temp for score!!! need them back when score is duplicated
+			/*
 			if(b.IsMimicGo()){ next_move = EBVCNT/2; }
 			else if(win_rate < 0.1){
 				// 1000回プレイアウトして本当に負けているか確認する
@@ -331,6 +333,7 @@ int CallGTP(){
 				}
 				if((double)win_cnt / 1000 < 0.25) next_move = PASS;
 			}
+			*/
 
 			// c. 局面を進める. Play the move.
 			b.PlayLegal(next_move);
