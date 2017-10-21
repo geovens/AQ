@@ -16,7 +16,7 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 		std::vector<std::array<double,EBVCNT>>& prob_list,
 		double temp, int sym_idx)
 {
-	if (false && importance > 0)
+	if (false && keypoint > 0)
 	{
 		prob_list.clear();
 		int ft_cnt = (int)ft_list.size();
@@ -30,9 +30,9 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 				int v = rtoe[j];
 
 				// AQ-PS
-				if (importance > 0)
+				if (keypoint > 0)
 				{
-					int dist = std::max(abs(etox[v] - etox[importance]), abs(etoy[v] - etoy[importance]));
+					int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
 					if (dist < 4)
 					{
 						prob[v] = 0.06;
@@ -116,9 +116,9 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 				else if (sym_idx > 7) prob[v] = (double)output_v(i, sv.rv[sym_idxs[i]][j][1]);
 				else prob[v] = (double)output_v(i, sv.rv[sym_idx][j][1]);
 
-				if (importance > 0)
+				if (keypoint > 0)
 				{
-					int dist = std::max(abs(etox[v] - etox[importance]), abs(etoy[v] - etoy[importance]));
+					int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
 					if (dist < 4)
 					{
 						//if (prob[v] > 0.2)

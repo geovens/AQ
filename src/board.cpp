@@ -115,7 +115,7 @@ Board& Board::operator=(const Board& other) {
 	std::memcpy(pass_cnt, other.pass_cnt, sizeof(pass_cnt));
 
 	// AQ-PS
-	ko_penalty = other.ko_penalty;
+	//ko_penalty = other.ko_penalty;
 
 	return *this;
 
@@ -134,7 +134,7 @@ void Board::Clear() {
 	her = 0;
 	empty_cnt = 0;
 
-	ko_penalty = 0;
+	//ko_penalty = 0;
 
 	FillArray(sum_prob_rank, 0.0);
 	FillArray(is_placed, false);
@@ -1350,6 +1350,42 @@ bool Board::IsMimicGo(){
 	}
 
 	return true;
+
+}
+
+void Board::SelectKeypoint() {
+
+	if (custom_keypoint > 0)
+		keypoint = custom_keypoint;
+	else if (custom_keypoint == -1)
+		keypoint = -1;
+	else
+	{
+		int sum_x = 0, sum_y = 0, cnt = 0;
+		for (int j = 0; j < BVCNT; ++j)
+		{
+			int v = rtoe[j];
+			if (is_placed[0][v] || is_placed[1][v])
+			{
+				sum_x += etox[v];
+				sum_y += etoy[v];
+				cnt++;
+			}
+			if (cnt > 0)
+			{
+				int ave_x = (int)((double)sum_x / cnt + 0.5);
+				int ave_y = (int)((double)sum_y / cnt + 0.5);
+				if (ave_x > 1 && ave_x < 5) ave_x--;
+				if (ave_x < 19 && ave_x > 15) ave_x++;
+				if (ave_y > 1 && ave_y < 5) ave_y--;
+				if (ave_y < 19 && ave_y > 15) ave_y++;
+				keypoint = xytoe[ave_x][ave_y];
+				//cerr << ave_x << " " << ave_y << " " << keypoint << " " << CoordinateString(keypoint) << "\n";
+			}
+			else
+				keypoint = 0;
+		}
+	}
 
 }
 

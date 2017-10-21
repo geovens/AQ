@@ -207,13 +207,25 @@ int CallGTP(){
 			SendGTP("= \n\n");
 			fprintf(stderr, "set komi=%.1f.\n", tree.komi);
 		}
+		else if (FindStr(gtp_str, "kopenalty"))
+		{
+			SplitString(gtp_str, " ", split_list);
+			if (split_list[0] == "=") split_list.erase(split_list.begin());
+
+			penalty_each_ko = stod(split_list[1]);
+
+			if (is_master) cluster.SendCommand(gtp_str);
+
+			SendGTP("= \n\n");
+			fprintf(stderr, "set penalty each ko=%.1f.\n", penalty_each_ko);
+		}
 		else if (FindStr(gtp_str, "keypoint") || FindStr(gtp_str, "keypoing"))
 		{
 			SplitString(gtp_str, " ", split_list);
 			if (split_list[0] == "=") split_list.erase(split_list.begin());
 
 			if (split_list[1] == "0" || split_list[1] == "-1")
-				importance = -1;
+				custom_keypoint = -1;
 			else
 			{
 				string str_x = split_list[1].substr(0, 1);
@@ -224,7 +236,7 @@ int CallGTP(){
 				int x = int(x_list.find(str_x)) % 19 + 1;
 				int y = stoi(str_y);
 
-				importance = xytoe[x][y];
+				custom_keypoint = xytoe[x][y];
 			}
 
 			if (is_master) cluster.SendCommand(gtp_str);
@@ -256,7 +268,8 @@ int CallGTP(){
 			// "=genmove b", "=genmove white", ...
 
 			auto t1 = std::chrono::system_clock::now();
-			cerr << "keypoint is " << CoordinateString(importance) << "\n";
+			b.SelectKeypoint();
+			cerr << "keypoint is " << CoordinateString(keypoint) << "\n";
 			cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;

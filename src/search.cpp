@@ -671,14 +671,14 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		double tmpprob = sqrt(pc->prob);
 		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
-		//if (b.ptn[pc->move].IsEnclosed(b.her))
-		//	action_value -= penalty_each_ko;
+		if (b.ptn[pc->move].IsEnclosed(b.her))
+			action_value -= penalty_each_ko;
 		
 		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
 
-		if (importance > 0)
+		if (keypoint > 0)
 		{
-			if (abs(etox[pc->move] - etox[importance]) > 8 || abs(etoy[pc->move] - etoy[importance]) > 8)
+			if (abs(etox[pc->move] - etox[keypoint]) > 8 || abs(etoy[pc->move] - etoy[keypoint]) > 8)
 				action_value -= 1;
 		}
 
@@ -753,10 +753,11 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 	// temp
 	bool ko_taken = false;
 	b.PlayLegal(next_move, &ko_taken);
-	if (ko_taken)
-	{
-		b.ko_penalty += penalty_each_ko;
-	}
+	//if (ko_taken)
+	//{
+	//	b.ko_penalty += penalty_each_ko;
+	//	cerr << "ko, penalty=" << b.ko_penalty << "\n";
+	//}
 
 	// 7. ノードを展開する
 	//    Expand the next node.
@@ -828,7 +829,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 			// seams like rollout_result is positive when 'I' win?
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias); // <- original!!!
 			rollout_result = -PlayoutLGR(b, lgr_, stat_, komi) * win_bias; // <- temp test!
-			rollout_result -= b.ko_penalty / 100;
+			//rollout_result -= b.ko_penalty / 100 * (b.ko_penalty_my == b.my ? 1 : 0);
 			//rollout_result = -PlayoutRandom(b, komi) * win_bias;
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
 		}
@@ -965,6 +966,7 @@ std::string CoordinateString(int v){
 int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 						bool is_errout, bool is_ponder)
 {
+	//b.ko_penalty_my = b.my;
 
 	// 1. root nodeを更新. Update root node.
 	if(b.move_cnt == 0) Tree::InitBoard();

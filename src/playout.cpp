@@ -105,10 +105,10 @@ int Win(Board& b, int pl, double komi) {
 		if (!visited[i] && (stone_color >= 0))
 		{
 			visited[i] = true;
-			//score[stone_color] += i == importance ? 1000 : 1;
-			if (importance > 0)
+			//score[stone_color] += i == keypoint ? 1000 : 1;
+			if (keypoint > 0)
 			{
-				double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+				double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
 				score[stone_color] += 10 / (dist + 1) - 1;
 			}
 			else
@@ -118,10 +118,10 @@ int Win(Board& b, int pl, double komi) {
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
-					//score[stone_color] += v_nbr == importance ? 1000 : 1;
-					if (importance > 0)
+					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
+					if (keypoint > 0)
 					{
-						double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+						double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
 						score[stone_color] += 10 / (dist + 1) - 1;
 					}
 					else
@@ -255,10 +255,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 		if (!visited[i] && stone_color >= 0) 
 		{
 			visited[i] = true;
-			//score[stone_color] += i == importance ? 1000 : 1;
-			if (importance > 0)
+			//score[stone_color] += i == keypoint ? 1000 : 1;
+			if (keypoint > 0)
 			{
-				double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+				double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
 				score[stone_color] += 10 / (dist + 1) - 1;
 			}
 			else
@@ -271,10 +271,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
-					//score[stone_color] += v_nbr == importance ? 1000 : 1;
-					if (importance > 0)
+					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
+					if (keypoint > 0)
 					{
-						double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+						double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
 						score[stone_color] += 10 / (dist + 1) - 1;
 					}
 					else
@@ -407,10 +407,10 @@ double Score(Board& b, double komi) {
 		if (!visited[i] && stone_color >= 0) 
 		{
 			visited[i] = true;
-			//score[stone_color] += i == importance ? 1000 : 1;
-			if (importance > 0)
+			//score[stone_color] += i == keypoint ? 1000 : 1;
+			if (keypoint > 0)
 			{
-				double dist = abs(etox[i] - etox[importance]) + abs(etoy[i] - etoy[importance]);
+				double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
 				score[stone_color] += 10 / (dist + 1) - 1;
 			}
 			else
@@ -420,10 +420,10 @@ double Score(Board& b, double komi) {
 				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
 				{
 					visited[v_nbr] = true;
-					//score[stone_color] += v_nbr == importance ? 1000 : 1;
-					if (importance > 0)
+					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
+					if (keypoint > 0)
 					{
-						double dist = abs(etox[v_nbr] - etox[importance]) + abs(etoy[v_nbr] - etoy[importance]);
+						double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
 						score[stone_color] += 10 / (dist + 1) - 1;
 					}
 					else

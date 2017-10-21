@@ -1,4 +1,5 @@
 #include "board_config.h"
 
-int importance = -1;
-double penalty_each_ko = 100;
+int keypoint = 0;
+int custom_keypoint = 0;
+double penalty_each_ko = 0.1;

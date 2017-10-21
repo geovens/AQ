@@ -17,7 +17,8 @@
  *****************************************************/
 
 // AQ-PS
-extern int importance;
+extern int keypoint;
+extern int custom_keypoint;
 extern double penalty_each_ko;
 
 // é¿î’ñ ÇÃÉTÉCÉY
