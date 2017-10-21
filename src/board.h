@@ -361,7 +361,8 @@ public:
 	// AQ-PS
 	// score penalty if a ko is played. used to discorrage kos.
 	//double ko_penalty;
-	//double ko_penalty_my;
+	double ko_penalty_my;
+	int searchdepth;
 
 	Board();
 	Board(const Board& other);

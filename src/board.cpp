@@ -115,7 +115,8 @@ Board& Board::operator=(const Board& other) {
 	std::memcpy(pass_cnt, other.pass_cnt, sizeof(pass_cnt));
 
 	// AQ-PS
-	//ko_penalty = other.ko_penalty;
+	ko_penalty_my = other.ko_penalty_my;
+	searchdepth = other.searchdepth;
 
 	return *this;
 
@@ -1313,7 +1314,13 @@ int Board::SelectMove() {
 			!IsEyeShape(my, next_move) 	&&
 			!IsSeki(next_move)			) break;
 		*/
-		if (IsLegal(my, next_move) && !IsEyeShape(my, next_move)) break;
+		if (IsLegal(my, next_move) &&
+			!IsEyeShape(my, next_move)) break;
+		/*
+		if (IsLegal(my, next_move)		&&
+			!IsEyeShape(my, next_move)	&& 
+			!(ptn[next_move].IsEnclosed(her) && my == ko_penalty_my)) break;
+		*/
 
 		// d. 合法手でないとき、next_moveの確率を除いて再計算する
 		//    Recalculate after subtracting probability of next_move.

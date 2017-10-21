@@ -108,8 +108,10 @@ int Win(Board& b, int pl, double komi) {
 			//score[stone_color] += i == keypoint ? 1000 : 1;
 			if (keypoint > 0)
 			{
-				double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
-				score[stone_color] += 10 / (dist + 1) - 1;
+				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
+				//score[stone_color] += 10 / (dist + 1) - 1;
+				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
+				if (dist < 5) score[stone_color]++;
 			}
 			else
 				score[stone_color]++;
@@ -121,8 +123,10 @@ int Win(Board& b, int pl, double komi) {
 					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
 					if (keypoint > 0)
 					{
-						double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
-						score[stone_color] += 10 / (dist + 1) - 1;
+						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
+						//score[stone_color] += 10 / (dist + 1) - 1;
+						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
+						if (dist < 5) score[stone_color]++;
 					}
 					else
 						score[stone_color]++;
@@ -258,8 +262,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 			//score[stone_color] += i == keypoint ? 1000 : 1;
 			if (keypoint > 0)
 			{
-				double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
-				score[stone_color] += 10 / (dist + 1) - 1;
+				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
+				//score[stone_color] += 10 / (dist + 1) - 1;
+				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
+				if (dist < 5) score[stone_color]++;
 			}
 			else
 				score[stone_color]++;
@@ -274,8 +280,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
 					if (keypoint > 0)
 					{
-						double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
-						score[stone_color] += 10 / (dist + 1) - 1;
+						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
+						//score[stone_color] += 10 / (dist + 1) - 1;
+						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
+						if (dist < 5) score[stone_color]++;
 					}
 					else
 						score[stone_color]++;
@@ -410,8 +418,10 @@ double Score(Board& b, double komi) {
 			//score[stone_color] += i == keypoint ? 1000 : 1;
 			if (keypoint > 0)
 			{
-				double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
-				score[stone_color] += 10 / (dist + 1) - 1;
+				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
+				//score[stone_color] += 10 / (dist + 1) - 1;
+				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
+				if (dist < 5) score[stone_color]++;
 			}
 			else
 				score[stone_color]++;
@@ -423,8 +433,10 @@ double Score(Board& b, double komi) {
 					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
 					if (keypoint > 0)
 					{
-						double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
-						score[stone_color] += 10 / (dist + 1) - 1;
+						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
+						//score[stone_color] += 10 / (dist + 1) - 1;
+						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
+						if (dist < 5) score[stone_color]++;
 					}
 					else
 						score[stone_color]++;

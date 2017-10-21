@@ -605,6 +605,9 @@ int Tree::UpdateRootNode(Board&b){
 double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		std::vector<std::pair<int,int>>& serch_route, LGR& lgr_, Statistics& stat_)
 {
+	// AQ-PS
+	b.searchdepth++;
+
 	Node *pn = &node[node_idx];
 	Child *pc;
 	bool use_rollout = (lambda != 1.0);
@@ -671,8 +674,10 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		double tmpprob = sqrt(pc->prob);
 		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
-		if (b.ptn[pc->move].IsEnclosed(b.her))
+		if (b.ptn[pc->move].IsEnclosed(b.her) && b.my == b.ko_penalty_my)
+		{
 			action_value -= penalty_each_ko;
+		}
 		
 		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
 
@@ -966,7 +971,8 @@ std::string CoordinateString(int v){
 int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 						bool is_errout, bool is_ponder)
 {
-	//b.ko_penalty_my = b.my;
+	b.ko_penalty_my = b.my;
+	b.searchdepth = 0;
 
 	// 1. root nodeÇçXêV. Update root node.
 	if(b.move_cnt == 0) Tree::InitBoard();

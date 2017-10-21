@@ -269,7 +269,7 @@ int CallGTP(){
 
 			auto t1 = std::chrono::system_clock::now();
 			b.SelectKeypoint();
-			cerr << "keypoint is " << CoordinateString(keypoint) << "\n";
+			cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
 			cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;
@@ -656,6 +656,27 @@ int CallGTP(){
 
 			int check = xytoe[x][y];
 			if (b.IsSeki(check))
+				SendGTP("= yes\n");
+			else
+				SendGTP("= no\n");
+
+			SendGTP("= \n\n");
+		}
+		else if (FindStr(gtp_str, "iseyeshape")) {
+
+			SplitString(gtp_str, " ", split_list);
+			if (split_list[0] == "=") split_list.erase(split_list.begin());
+
+			string str_x = split_list[1].substr(0, 1);
+			string str_y = split_list[1].substr(1);
+
+			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
+
+			int x = int(x_list.find(str_x)) % 19 + 1;
+			int y = stoi(str_y);
+
+			int check = xytoe[x][y];
+			if (b.IsEyeShape(0, check) || b.IsEyeShape(1, check))
 				SendGTP("= yes\n");
 			else
 				SendGTP("= no\n");
