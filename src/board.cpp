@@ -1344,10 +1344,17 @@ int Board::SelectMove() {
 		if (IsLegal(my, next_move) &&
 			!IsEyeShape(my, next_move)) break;
 		*/
-		
-		if (IsLegal(my, next_move)		&&
-			!IsEyeShape(my, next_move)	&& 
-			!(IsKo(her, next_move) && my == ko_penalty_my)) break;
+		if (penalty_each_ko > 0)
+		{
+			if (IsLegal(my, next_move) &&
+				!IsEyeShape(my, next_move) &&
+				!(IsKo(her, next_move) && my == ko_penalty_my)) break;
+		}
+		else
+		{
+			if (IsLegal(my, next_move) &&
+				!IsEyeShape(my, next_move)) break;
+		}
 		
 
 		// d. 合法手でないとき、next_moveの確率を除いて再計算する
