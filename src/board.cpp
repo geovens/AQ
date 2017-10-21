@@ -230,6 +230,32 @@ bool Board::IsLegal(int pl, int v) const{
 
 }
 
+bool Board::IsKo(int pl, int v) const {
+
+	assert(v <= PASS);
+
+	if (v == PASS) return false;
+
+	if (!ptn[v].IsEnclosed(pl)) return false;
+	if (color[v] != 0) return false;
+
+	bool isko = false;
+	for (int i = 0; i < 4; ++i) {
+		int v_nbr = v + VSHIFT[i];	// neighboring position
+
+		// when white or black stone
+		if (color[v_nbr] > 1) {
+			if (ptn[v_nbr].IsAlmostEnclosed(1 - pl) == true)
+			{
+				isko = true;
+				break;
+			}
+		}
+	}
+
+	return isko;
+}
+
 
 /**
  *  À•Wv‚ªpl‘¤‚ÌŠáŒ`‚©

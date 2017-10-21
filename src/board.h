@@ -369,6 +369,7 @@ public:
 	Board& operator=(const Board& other);
 	void Clear();
 	bool IsLegal(int pl, int v) const;
+	bool IsKo(int pl, int v) const;
 	bool IsEyeShape(int pl, int v) const;
 	bool IsFalseEye(int v) const;
 	bool IsSeki(int v) const;

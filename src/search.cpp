@@ -674,7 +674,7 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		double tmpprob = sqrt(pc->prob);
 		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
-		if (b.ptn[pc->move].IsEnclosed(b.her) && b.my == b.ko_penalty_my)
+		if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
 		{
 			action_value -= penalty_each_ko;
 		}
