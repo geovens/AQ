@@ -1340,13 +1340,15 @@ int Board::SelectMove() {
 			!IsEyeShape(my, next_move) 	&&
 			!IsSeki(next_move)			) break;
 		*/
+		/*
 		if (IsLegal(my, next_move) &&
 			!IsEyeShape(my, next_move)) break;
-		/*
+		*/
+		
 		if (IsLegal(my, next_move)		&&
 			!IsEyeShape(my, next_move)	&& 
-			!(ptn[next_move].IsEnclosed(her) && my == ko_penalty_my)) break;
-		*/
+			!(IsKo(her, next_move) && my == ko_penalty_my)) break;
+		
 
 		// d. 合法手でないとき、next_moveの確率を除いて再計算する
 		//    Recalculate after subtracting probability of next_move.
