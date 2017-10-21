@@ -602,7 +602,7 @@ int Tree::UpdateRootNode(Board&b){
  *  At the leaf node, rollout and evaluation are performed,
  *  and the results are returned.
  */
-double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
+double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		std::vector<std::pair<int,int>>& serch_route, LGR& lgr_, Statistics& stat_)
 {
 	Node *pn = &node[node_idx];
@@ -777,19 +777,19 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 			npn->value_cnt += (double)pc->value_cnt;
 			// 手番が変わるので評価値を反転
 			// Reverse evaluation value since turn changes.
-			FetchAdd(&npn->rollout_win, -(double)pc->rollout_win);
-			FetchAdd(&npn->value_win, -(double)pc->value_win);
+			FetchAdd(&npn->rollout_win, -pc->rollout_win);
+			FetchAdd(&npn->value_win, -pc->value_win);
 		}
 	}
 
 	// 8. virtual lossを加える. Add virtual loss.
 	if(use_rollout){
-		FetchAdd(&pc->rollout_win, -(double)vloss_cnt);
+		FetchAdd(&pc->rollout_win, -(float)vloss_cnt);
 		pc->rollout_cnt += vloss_cnt;
 		pn->total_game_cnt += vloss_cnt;
 	}
 	else{
-		FetchAdd(&pc->value_win, -(double)vloss_cnt);
+		FetchAdd(&pc->value_win, -(float)vloss_cnt);
 		pc->value_cnt += vloss_cnt;
 		pn->total_game_cnt += vloss_cnt;
 	}
@@ -797,7 +797,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 
 	// 9. 末端であればプレイアウトを行い、次のノードが存在すれば探索を進める
 	//    Roll out if it is the leaf node, otherwise proceed to the next node.
-	double rollout_result = 0.0;
+	float rollout_result = 0.0;
 	if (need_rollout)
 	{
 		// a-1. 局面が未評価であればキューに追加する
@@ -845,14 +845,14 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 	// 10. virtual lossを解消&勝率更新
 	//     Subtract virtual loss and update results.
 	if(use_rollout){
-		FetchAdd(&pc->rollout_win, (double)vloss_cnt + rollout_result);
+		FetchAdd(&pc->rollout_win, (float)vloss_cnt + rollout_result);
 		pc->rollout_cnt += 1 - vloss_cnt;
 		pn->total_game_cnt += 1 - vloss_cnt;
 		FetchAdd(&pn->rollout_win, rollout_result);
 		pn->rollout_cnt += 1;
 	}
 	else{
-		FetchAdd(&pc->value_win, (double)vloss_cnt);
+		FetchAdd(&pc->value_win, (float)vloss_cnt);
 		pc->value_cnt += -vloss_cnt;
 		pn->total_game_cnt += 1 - vloss_cnt;
 	}
@@ -1281,7 +1281,7 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 		else{
 			Board b_ = b;
 			int node_idx = root_node_idx;
-			double value_result = 0.0;
+			float value_result = 0.0;
 			std::vector<std::pair<int,int>> serch_route;
 			SearchBranch(b_, node_idx, value_result, serch_route, lgr_th, stat_th);
 		}
@@ -1409,7 +1409,7 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 							Node* pn = &node[vque_th[i].node_idx[j]];
 							Child* pc = &pn->children[vque_th[i].child_idx[j]];
 							int add_cnt = vque_th[i].request_cnt;
-							double add_win = double(add_cnt * eval_list[i]);
+							float add_win = float(add_cnt * eval_list[i]);
 							if(int(pn->pl) != leaf_pl) add_win *= -1;
 
 							FetchAdd(&pc->value_win, add_win);

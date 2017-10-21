@@ -113,7 +113,7 @@ public:
 	int UpdateRootNode(Board& b);
 	double BranchRate(Child* pc);
 
-	double SearchBranch(Board& b, int node_idx, double& value_result,
+	double SearchBranch(Board& b, int node_idx, float& value_result,
 		std::vector<std::pair<int, int>>& search_route, LGR& lgr_, Statistics& stat_);
 
 	int SearchTree(Board& b, double time_limit, double& win_rate,
