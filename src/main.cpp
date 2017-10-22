@@ -7,14 +7,18 @@ int main(int argc, char **argv) {
 	std::cerr << "configuration loaded.\n";
 
 	// temp
-	
-	DoSgfs();
+	/*
+
 	getchar();
 	return 0;
-	
+	*/
 
-	if(self_match) 	SelfMatch();
-	else 			CallGTP();
+	if(self_match)
+		SelfMatch();
+	else if (test_sgfs)	
+		DoSgfs();
+	else
+		CallGTP();
 
 	//DoSomething();
 
@@ -48,8 +52,9 @@ void DoSgfs()
 		std::cerr << "\n\n" << sgf.filepath << "\n";
 
 
-
+		std::cerr << b.move_cnt << " " << sgf.move_cnt << "\n";
 		sgf.GenerateBoard(b, sgf.move_cnt);
+		std::cerr << b.move_cnt << " " << sgf.move_cnt << "\n";
 		tree.UpdateRootNode(b);
 		int blackfirst = sgf.filepath.find("w") != std::string::npos ? 0 : 1;
 		std::cerr << blackfirst << " " << b.my << "\n";
@@ -57,7 +62,7 @@ void DoSgfs()
 		{
 			b.PlayLegal(PASS);
 			sgf.AddMove(PASS);
-			tree.UpdateRootNode(b);
+			//tree.UpdateRootNode(b);
 			--b.pass_cnt[b.her];
 		}
 		b.SelectKeypoint();
@@ -66,6 +71,7 @@ void DoSgfs()
 		flog << "\n\n" << sgf.filepath << "\n";
 		flog << "interested area is around " << CoordinateString(keypoint) << "\n";
 		flog.close();
+		std::cerr << b.move_cnt << "\n";
 		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
 		b.PlayLegal(next_move);
 		PrintBoard(b, next_move);
@@ -130,7 +136,8 @@ void ReadConfiguration(int argc, char **argv){
 				case 17: use_pondering 	= (str == "true" || str == "on"); break;
 				case 18: cfg_heat		= stod(str); break;
 				case 19: custom_keypoint	= stoi(str); break;
-				case 20: penalty_each_ko = stoi(str); break;
+				case 20: penalty_each_ko= stoi(str); break;
+				case 21: test_sgfs		= (str == "true" || str == "on"); break;
 				default: break;
 			}
 			++line_cnt;

@@ -399,12 +399,13 @@ bool SgfData::GenerateBoard(Board& b, int move_idx) {
 			if (!b.IsLegal(b.my, handicap_stone[0][i])) return false;
 			b.PlayLegal(handicap_stone[0][i]);
 		}
-		else b.PlayLegal(PASS);
+		else if (i != handicap_stone_cnt - 1) b.PlayLegal(PASS);
 	}
 
+	// temp
 	// ’uÎ‚Íè”‚ÉŠÜ‚Ü‚È‚¢. Reset move_cnt.
-	b.move_history.clear();
-	b.move_cnt = 0;
+	//b.move_history.clear();
+	//b.move_cnt = 0;
 	b.pass_cnt[0] = b.pass_cnt[1] = 0;
 
 	// ‰Šú‹Ç–Ê. Initial board.

@@ -1335,27 +1335,30 @@ int Board::SelectMove() {
 		// c. 眼を埋めずセキでもない合法手か
 		//    Break if next_move is legal and dosen't fill an eye or Seki.
 		// temp!!!
-		/*
+		
 		if (IsLegal(my, next_move) 		&&
 			!IsEyeShape(my, next_move) 	&&
 			!IsSeki(next_move)			) break;
-		*/
+		
 		/*
 		if (IsLegal(my, next_move) &&
 			!IsEyeShape(my, next_move)) break;
 		*/
+		/*
 		if (penalty_each_ko > 0)
 		{
 			if (IsLegal(my, next_move) &&
 				!IsEyeShape(my, next_move) &&
+				!IsSeki(next_move) &&
 				!(IsKo(her, next_move) && my == ko_penalty_my)) break;
 		}
 		else
 		{
 			if (IsLegal(my, next_move) &&
-				!IsEyeShape(my, next_move)) break;
+				!IsEyeShape(my, next_move) &&
+				!IsSeki(next_move)) break;
 		}
-		
+		*/
 
 		// d. 合法手でないとき、next_moveの確率を除いて再計算する
 		//    Recalculate after subtracting probability of next_move.

@@ -20,6 +20,7 @@
 extern int keypoint;
 extern int custom_keypoint;
 extern double penalty_each_ko;
+extern bool test_sgfs;
 
 // é¿î’ñ ÇÃÉTÉCÉY
 // Size of real board.

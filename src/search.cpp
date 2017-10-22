@@ -1123,7 +1123,8 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 			// c. thread_cnt個のスレッドで並列探索を行う
 			//    Search in parallel with thread_cnt threads.
 			ParallelSearch(thinking_time, b, is_ponder);
-			SortChildren(pn, rc);
+			//SortChildren(pn, rc);
+			SortChildrenByRollout(pn, rc);
 
 			// d. 1位の手と2位の手の試行回数が1.5倍以内のとき、思考時間を延長する
 			//    Extend thinking time when the trial number of first move
@@ -1623,8 +1624,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 	Node* pn = &node[node_idx];
 	std::vector<Child*> rc;
 	// temp
-	//SortChildren(pn, rc);
-	SortChildren(pn, rc);
+	SortChildrenByRollout(pn, rc);
 
 	ost << "|move|count  |value|score |prob |depth| best sequence" << endl;
 

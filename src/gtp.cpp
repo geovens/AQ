@@ -89,6 +89,7 @@ int CallGTP(){
 		SgfData sgf_read;
 		sgf_read.ImportData(resume_sgf_path);
 		sgf_read.GenerateBoard(b, sgf_read.move_cnt);
+		tree.UpdateRootNode(b);
 		sgf = sgf_read;
 	}
 
@@ -678,6 +679,27 @@ int CallGTP(){
 
 			int check = xytoe[x][y];
 			if (b.IsEyeShape(0, check) || b.IsEyeShape(1, check))
+				SendGTP("= yes\n");
+			else
+				SendGTP("= no\n");
+
+			SendGTP("= \n\n");
+		}
+		else if (FindStr(gtp_str, "isselfatarinakade")) {
+
+			SplitString(gtp_str, " ", split_list);
+			if (split_list[0] == "=") split_list.erase(split_list.begin());
+
+			string str_x = split_list[1].substr(0, 1);
+			string str_y = split_list[1].substr(1);
+
+			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
+
+			int x = int(x_list.find(str_x)) % 19 + 1;
+			int y = stoi(str_y);
+
+			int check = xytoe[x][y];
+			if (b.IsSelfAtariNakade(check))
 				SendGTP("= yes\n");
 			else
 				SendGTP("= no\n");

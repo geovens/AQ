@@ -258,8 +258,6 @@ private:
 	void RemoveStone(int v);
 	void MergeRen(int v_base, int v_add);
 	void RemoveRen(int v);
-	bool IsSelfAtariNakade(int v) const;
-	bool IsSelfAtari(int pl, int v) const;
 	void UpdatePrevPtn(int v);
 	void SubPrevPtn();
 	void AddProb(int pl, int v, double add_prob);
@@ -373,6 +371,8 @@ public:
 	bool IsEyeShape(int pl, int v) const;
 	bool IsFalseEye(int v) const;
 	bool IsSeki(int v) const;
+	bool IsSelfAtariNakade(int v) const;
+	bool IsSelfAtari(int pl, int v) const;
 	void PlayLegal(int v, bool* ko_taken = NULL);
 	void ReplaceProb(int pl, int v, double new_prob);
 	void RecalcProbAll();
