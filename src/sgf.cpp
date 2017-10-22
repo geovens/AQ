@@ -77,6 +77,7 @@ int SgfData::ConvertToVertex(string aa) {
 void SgfData::ImportData(string file_name) {
 
 	// ファイルを開く. Open the file.
+	filepath = file_name;
 	std::stringstream fn;
 	fn << file_name;
 	std::ifstream ifs(fn.str());

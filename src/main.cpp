@@ -6,6 +6,11 @@ int main(int argc, char **argv) {
 	ReadConfiguration(argc, argv);
 	std::cerr << "configuration loaded.\n";
 
+	// temp
+	DoSgfs();
+	getchar();
+	return 0;
+
 	if(self_match) 	SelfMatch();
 	else 			CallGTP();
 
@@ -16,6 +21,30 @@ int main(int argc, char **argv) {
 
 }
 
+void DoSgfs()
+{
+	Board b;
+	Tree tree;
+	std::vector<SgfData> sgf_list;
+	ImportSGFList(resume_sgf_path, sgf_list);
+	std::ofstream fo("output.txt");
+	fo.close();
+	int fn = 0;
+	double winrate = 0.5;
+	for (SgfData sgf : sgf_list)
+	{
+		fn++;
+		std::cerr << sgf.filepath << "\n";
+
+		sgf.GenerateBoard(b, sgf.move_cnt);
+		b.SelectKeypoint();
+		tree.UpdateRootNode(b);
+		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
+		fo.open("output.txt", std::ios::app);
+		fo << sgf.filepath << "," << CoordinateString(next_move) << "\n";
+		fo.close();
+	}
+}
 
 void ReadConfiguration(int argc, char **argv){
 

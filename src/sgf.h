@@ -42,6 +42,8 @@ public:
 	bool is_black_first;
 	double score;
 
+	std::string filepath;
+
 	SgfData();
 	void Clear();
 	void AddMove(int v);
