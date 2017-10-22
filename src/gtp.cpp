@@ -270,6 +270,7 @@ int CallGTP(){
 			auto t1 = std::chrono::system_clock::now();
 			b.SelectKeypoint();
 			cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
+			cerr << "ko is " << (penalty_each_ko > 0 ? "forbidden" : "allowed") << "\n";
 			cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;

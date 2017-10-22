@@ -7,9 +7,11 @@ int main(int argc, char **argv) {
 	std::cerr << "configuration loaded.\n";
 
 	// temp
+	
 	DoSgfs();
 	getchar();
 	return 0;
+	
 
 	if(self_match) 	SelfMatch();
 	else 			CallGTP();
@@ -23,26 +25,58 @@ int main(int argc, char **argv) {
 
 void DoSgfs()
 {
+	std::cerr << "ko is " << (penalty_each_ko > 0 ? "forbidden" : "allowed") << "\n";
+
 	Board b;
 	Tree tree;
 	std::vector<SgfData> sgf_list;
 	ImportSGFList(resume_sgf_path, sgf_list);
+
 	std::ofstream fo("output.txt");
 	fo.close();
+	std::string log_path = "log/0.txt";
+	tree.log_path = log_path;
+	std::ofstream flog(log_path);
+	flog << "ko is " << (penalty_each_ko > 0 ? "forbidden" : "allowed") << "\n";
+	flog.close();
+
 	int fn = 0;
 	double winrate = 0.5;
 	for (SgfData sgf : sgf_list)
 	{
 		fn++;
-		std::cerr << sgf.filepath << "\n";
+		std::cerr << "\n\n" << sgf.filepath << "\n";
+
+
 
 		sgf.GenerateBoard(b, sgf.move_cnt);
-		b.SelectKeypoint();
 		tree.UpdateRootNode(b);
+		int blackfirst = sgf.filepath.find("w") != std::string::npos ? 0 : 1;
+		std::cerr << blackfirst << " " << b.my << "\n";
+		if (blackfirst != b.my)
+		{
+			b.PlayLegal(PASS);
+			sgf.AddMove(PASS);
+			tree.UpdateRootNode(b);
+			--b.pass_cnt[b.her];
+		}
+		b.SelectKeypoint();
+		std::cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
+		flog.open(log_path, std::ios::app);
+		flog << "\n\n" << sgf.filepath << "\n";
+		flog << "interested area is around " << CoordinateString(keypoint) << "\n";
+		flog.close();
 		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
+		b.PlayLegal(next_move);
+		PrintBoard(b, next_move);
+
 		fo.open("output.txt", std::ios::app);
 		fo << sgf.filepath << "," << CoordinateString(next_move) << "\n";
 		fo.close();
+
+
+		PrintBoard(b, next_move, log_path);
+
 	}
 }
 
@@ -96,6 +130,7 @@ void ReadConfiguration(int argc, char **argv){
 				case 17: use_pondering 	= (str == "true" || str == "on"); break;
 				case 18: cfg_heat		= stod(str); break;
 				case 19: custom_keypoint	= stoi(str); break;
+				case 20: penalty_each_ko = stoi(str); break;
 				default: break;
 			}
 			++line_cnt;
