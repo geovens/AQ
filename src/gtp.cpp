@@ -61,6 +61,7 @@ int CallGTP(){
 	bool play_mimic = cfg_mimic;
 	Board b;
 	Tree tree;
+	tree.InitBoard();
 	Cluster cluster;
 #ifdef _WIN32
 	// Cluster cannot be used on Windows.

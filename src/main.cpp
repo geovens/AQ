@@ -33,6 +33,7 @@ void DoSgfs()
 
 	Board b;
 	Tree tree;
+	tree.InitBoard();
 	std::vector<SgfData> sgf_list;
 	ImportSGFList(resume_sgf_path, sgf_list);
 
@@ -50,19 +51,18 @@ void DoSgfs()
 	{
 		fn++;
 		std::cerr << "\n\n" << sgf.filepath << "\n";
-
+		tree.Clear();
 
 		std::cerr << b.move_cnt << " " << sgf.move_cnt << "\n";
 		sgf.GenerateBoard(b, sgf.move_cnt);
 		std::cerr << b.move_cnt << " " << sgf.move_cnt << "\n";
-		tree.UpdateRootNode(b);
+		//tree.UpdateRootNode(b);
 		int blackfirst = sgf.filepath.find("w") != std::string::npos ? 0 : 1;
 		std::cerr << blackfirst << " " << b.my << "\n";
 		if (blackfirst != b.my)
 		{
 			b.PlayLegal(PASS);
 			sgf.AddMove(PASS);
-			//tree.UpdateRootNode(b);
 			--b.pass_cnt[b.her];
 		}
 		b.SelectKeypoint();
@@ -72,6 +72,7 @@ void DoSgfs()
 		flog << "interested area is around " << CoordinateString(keypoint) << "\n";
 		flog.close();
 		std::cerr << b.move_cnt << "\n";
+		tree.UpdateRootNode(b);
 		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
 		b.PlayLegal(next_move);
 		PrintBoard(b, next_move);
