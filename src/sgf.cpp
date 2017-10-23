@@ -387,20 +387,40 @@ bool SgfData::GenerateBoard(Board& b, int move_idx) {
 	if (move_idx > move_cnt) return false;
 	b.Clear();
 
+	Board bn;
 	// 置石を配置. Place handicap stones.
 	int handicap_stone_cnt = std::max((int)handicap_stone[0].size(), (int)handicap_stone[1].size());
 	for (int i=0;i<handicap_stone_cnt;++i) {
 		if ((int)handicap_stone[1].size() > i) {
-			if (!b.IsLegal(b.my, handicap_stone[1][i])) return false;
-			b.PlayLegal(handicap_stone[1][i]);
+			if (!bn.IsLegal(bn.my, handicap_stone[1][i])) return false;
+			bn.PlayLegal(handicap_stone[1][i]);
 		}
-		else b.PlayLegal(PASS);
+		else bn.PlayLegal(PASS);
 		if ((int)handicap_stone[0].size() > i) {
-			if (!b.IsLegal(b.my, handicap_stone[0][i])) return false;
-			b.PlayLegal(handicap_stone[0][i]);
+			if (!bn.IsLegal(bn.my, handicap_stone[0][i])) return false;
+			bn.PlayLegal(handicap_stone[0][i]);
 		}
-		else if (i != handicap_stone_cnt - 1) b.PlayLegal(PASS);
+		else if (i != handicap_stone_cnt - 1) bn.PlayLegal(PASS);
 	}
+	
+
+	for (int x = 1; x <= 19; x++)
+		for (int y = 19; y >= 1; y--)
+		{
+			int v = xytoe[x][y];
+			if (bn.is_placed[1][v] || bn.is_placed[0][v])
+			{
+				if ((b.my == 0 && bn.is_placed[1][v]) ||
+					(b.my == 1 && bn.is_placed[0][v]))
+				{
+					b.PlayLegal(PASS);
+					--b.pass_cnt[b.her];
+				}
+
+				b.PlayLegal(v);
+				//tree.UpdateRootNode(b);
+			}
+		}
 
 	// temp
 	// 置石は手数に含まない. Reset move_cnt.
