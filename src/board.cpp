@@ -1340,17 +1340,19 @@ int Board::SelectMove() {
 			!IsEyeShape(my, next_move) 	&&
 			!IsSeki(next_move)			) break;
 		
-		/*
-		if (IsLegal(my, next_move) &&
-			!IsEyeShape(my, next_move)) break;
-		*/
+		// the following block works horribly. don't use.
 		/*
 		if (penalty_each_ko > 0)
 		{
+			int dist;
+			if (keypoint > 0)
+				dist = std::max(abs(etox[next_move] - etox[keypoint]), abs(etoy[next_move] - etoy[keypoint]));
+			else
+				dist = 100;
 			if (IsLegal(my, next_move) &&
 				!IsEyeShape(my, next_move) &&
 				!IsSeki(next_move) &&
-				!(IsKo(her, next_move) && my == ko_penalty_my)) break;
+				!(IsKo(her, next_move) && my == ko_penalty_my && dist < 5)) break;
 		}
 		else
 		{
@@ -1420,10 +1422,18 @@ void Board::SelectKeypoint() {
 			{
 				int ave_x = (int)((double)sum_x / cnt + 0.5);
 				int ave_y = (int)((double)sum_y / cnt + 0.5);
-				if (ave_x > 1 && ave_x < 5) ave_x--;
-				if (ave_x < 19 && ave_x > 15) ave_x++;
-				if (ave_y > 1 && ave_y < 5) ave_y--;
-				if (ave_y < 19 && ave_y > 15) ave_y++;
+				if (ave_x < 6) ave_x--;
+				if (ave_x < 4) ave_x--;
+				if (ave_x < 1) ave_x = 1;
+				if (ave_x > 14) ave_x++;
+				if (ave_x > 16) ave_x++;
+				if (ave_x > 19) ave_x = 19;
+				if (ave_y < 6) ave_y--;
+				if (ave_y < 4) ave_y--;
+				if (ave_y < 1) ave_y = 1;
+				if (ave_y > 14) ave_y++;
+				if (ave_y > 16) ave_y++;
+				if (ave_y > 19) ave_y = 19;
 				keypoint = xytoe[ave_x][ave_y];
 				//cerr << ave_x << " " << ave_y << " " << keypoint << " " << CoordinateString(keypoint) << "\n";
 			}

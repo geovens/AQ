@@ -227,7 +227,7 @@ int CallGTP(){
 			if (split_list[0] == "=") split_list.erase(split_list.begin());
 
 			if (split_list[1] == "0" || split_list[1] == "-1")
-				custom_keypoint = -1;
+				custom_keypoint = stoi(split_list[1]);
 			else
 			{
 				string str_x = split_list[1].substr(0, 1);
