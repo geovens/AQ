@@ -131,7 +131,7 @@ void Tree::Clear(){
 #ifdef CPU_ONLY
 	thread_cnt = cfg_thread_cnt;
 	gpu_cnt = 1;
-	expand_cnt = 32;
+	expand_cnt = 64;
 #else
 	thread_cnt = (cfg_thread_cnt > cfg_gpu_cnt) ? cfg_thread_cnt : cfg_gpu_cnt + 1;
 	gpu_cnt = cfg_gpu_cnt;
@@ -1624,6 +1624,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 	Node* pn = &node[node_idx];
 	std::vector<Child*> rc;
 	// temp
+	//SortChildren(pn, rc);
 	SortChildrenByRollout(pn, rc);
 
 	ost << "|move|count  |value|score |prob |depth| best sequence" << endl;

@@ -545,6 +545,7 @@ int CallGTP(){
 				SgfData sgf_read;
 				sgf_read.ImportData(resume_sgf_path);
 				sgf_read.GenerateBoard(b, sgf_read.move_cnt);
+				tree.UpdateRootNode(b);
 				sgf = sgf_read;
 			}
 
