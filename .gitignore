@@ -11,3 +11,4 @@ test_problems/test
 *.suo
 *.opensdf
 *.opendb
+*.db

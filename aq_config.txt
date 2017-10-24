@@ -8,12 +8,12 @@
 # If using 'time_left' command via GTP,
 # set 'time controll' to 'off'.
 -main time[sec] =0
--byoyomi[sec] =15
+-byoyomi[sec] =10
 -time controll =on
 
 ### Thinking setting ###
 -japanese rule =off
--komi =7.5
+-komi =0
 -symmetrical index =0
 -mimic go =off
 -never resign =off
@@ -29,5 +29,7 @@
 -use pondering =off
 
 ### AQ-PS ###
--heat =0.1
--default keypoint =220
+-heat =0.0
+-custom keypoint =0
+-forbid ko=1
+-test sgf=off
