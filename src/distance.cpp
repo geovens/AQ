@@ -36,10 +36,11 @@ std::array<double, EBVCNT> prob_dist_base;
  *  Return the Manhattan distance - 1.
  */
 int DistBetween(int v1, int v2){
-
+	// temp !!!!!!!!!!!
 	// PASS‚ªŠÜ‚Ü‚ê‚éê‡Å‘å’li16j‚ð•Ô‚·
 	// Return the maximum value (=16) if v1 or v2 is PASS/VNULL.
 	if (v1 >= PASS || v2 >= PASS) return 16;
+	//if (v1 >= PASS || v2 >= PASS) return 1;
 
 	int dx = std::abs(etox[v1] - etox[v2]);
 	int dy = std::abs(etoy[v1] - etoy[v2]);

@@ -53,12 +53,10 @@ void DoSgfs()
 		std::cerr << "\n\n" << sgf.filepath << "\n";
 		tree.Clear();
 
-		std::cerr << b.move_cnt << " " << sgf.move_cnt << "\n";
 		sgf.GenerateBoard(b, sgf.move_cnt);
-		std::cerr << b.move_cnt << " " << sgf.move_cnt << "\n";
-		//tree.UpdateRootNode(b);
+		tree.UpdateRootNode(b);
+
 		int blackfirst = sgf.filepath.find("w") != std::string::npos ? 0 : 1;
-		std::cerr << blackfirst << " " << b.my << "\n";
 		if (blackfirst != b.my)
 		{
 			b.PlayLegal(PASS);
@@ -66,13 +64,14 @@ void DoSgfs()
 			--b.pass_cnt[b.her];
 		}
 		b.SelectKeypoint();
+
 		std::cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
 		flog.open(log_path, std::ios::app);
 		flog << "\n\n" << sgf.filepath << "\n";
 		flog << "interested area is around " << CoordinateString(keypoint) << "\n";
 		flog.close();
-		std::cerr << b.move_cnt << "\n";
-		tree.UpdateRootNode(b);
+		
+		winrate = 0.5;
 		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
 		b.PlayLegal(next_move);
 		PrintBoard(b, next_move);
@@ -83,7 +82,6 @@ void DoSgfs()
 
 
 		PrintBoard(b, next_move, log_path);
-
 	}
 }
 
