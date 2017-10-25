@@ -2,6 +2,7 @@ vs/build
 vs/bin
 vs/tensorflow/lib
 test_problems/test
+release
 
 *.pdb
 *.ipdb
