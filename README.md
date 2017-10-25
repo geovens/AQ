@@ -8,7 +8,7 @@ Pre-compiled executables might be released soon after it's proved to be strong e
 ## Usage
 
 ### Keypoint
-There is a 'keypoint' on the board, around which AQ-PS will pay full attention to, instead of finding big open moves or thinking about the whole-board. By default the keypoint is automatically set around the middle of existing stones on the board (not implemented yet). You can also set the position of the keypoint using GTP command 'keypoint'. For example, 'keypoint a1' sets the bottom left corner as the only area that the bot will be interested in.
+There is a 'keypoint' on the board, around which AQ-PS will pay full attention to, instead of finding big open moves or thinking about the whole-board. By default the keypoint is automatically set around the middle of existing stones on the board. You can also manually set the position of the keypoint using GTP command 'keypoint'. For example, 'keypoint a1' sets the bottom left corner as the only area that the bot will be interested in.
 
 ### Use case
 

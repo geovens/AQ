@@ -689,11 +689,13 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		
 		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
 
+		/*
 		if (keypoint > 0)
 		{
 			if (abs(etox[pc->move] - etox[keypoint]) > 8 || abs(etoy[pc->move] - etoy[keypoint]) > 8)
 				action_value -= 1;
 		}
+		*/
 
 		// e. max_idx‚ðXV. Update max_idx.
 		if (action_value > max_avalue) {
