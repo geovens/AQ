@@ -209,17 +209,17 @@ int CallGTP(){
 			SendGTP("= \n\n");
 			fprintf(stderr, "set komi=%.1f.\n", tree.komi);
 		}
-		else if (FindStr(gtp_str, "kopenalty"))
+		else if (FindStr(gtp_str, "avoidko"))
 		{
 			SplitString(gtp_str, " ", split_list);
 			if (split_list[0] == "=") split_list.erase(split_list.begin());
 
-			penalty_each_ko = stod(split_list[1]);
+			cfg_avoid_ko = stod(split_list[1]);
 
 			if (is_master) cluster.SendCommand(gtp_str);
 
 			SendGTP("= \n\n");
-			fprintf(stderr, "set penalty each ko=%.1f.\n", penalty_each_ko);
+			fprintf(stderr, "set penalty each ko=%.1f.\n", cfg_avoid_ko);
 		}
 		else if (FindStr(gtp_str, "keypoint") || FindStr(gtp_str, "keypoing"))
 		{
@@ -227,7 +227,7 @@ int CallGTP(){
 			if (split_list[0] == "=") split_list.erase(split_list.begin());
 
 			if (split_list[1] == "0" || split_list[1] == "-1")
-				custom_keypoint = stoi(split_list[1]);
+				cfg_custom_keypoint = stoi(split_list[1]);
 			else
 			{
 				string str_x = split_list[1].substr(0, 1);
@@ -238,7 +238,7 @@ int CallGTP(){
 				int x = int(x_list.find(str_x)) % 19 + 1;
 				int y = stoi(str_y);
 
-				custom_keypoint = xytoe[x][y];
+				cfg_custom_keypoint = xytoe[x][y];
 			}
 
 			if (is_master) cluster.SendCommand(gtp_str);
@@ -272,7 +272,7 @@ int CallGTP(){
 			auto t1 = std::chrono::system_clock::now();
 			b.SelectKeypoint();
 			cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
-			cerr << "ko is " << (penalty_each_ko > 0 ? "forbidden" : "allowed") << "\n";
+			cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 			cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;

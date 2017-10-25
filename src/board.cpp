@@ -1342,7 +1342,7 @@ int Board::SelectMove() {
 		
 		// the following block works horribly. don't use.
 		/*
-		if (penalty_each_ko > 0)
+		if (cfg_avoid_ko > 0)
 		{
 			int dist;
 			if (keypoint > 0)
@@ -1402,9 +1402,9 @@ bool Board::IsMimicGo(){
 
 void Board::SelectKeypoint() {
 
-	if (custom_keypoint > 0)
-		keypoint = custom_keypoint;
-	else if (custom_keypoint == -1)
+	if (cfg_custom_keypoint > 0)
+		keypoint = cfg_custom_keypoint;
+	else if (cfg_custom_keypoint == -1)
 		keypoint = -1;
 	else
 	{

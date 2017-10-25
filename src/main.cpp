@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
 	if(self_match)
 		SelfMatch();
-	else if (test_sgfs)	
+	else if (cfg_test_sgfs)	
 		DoSgfs();
 	else
 		CallGTP();
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
 void DoSgfs()
 {
-	std::cerr << "ko is " << (penalty_each_ko > 0 ? "forbidden" : "allowed") << "\n";
+	std::cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 
 	Board b;
 	Tree tree;
@@ -42,7 +42,7 @@ void DoSgfs()
 	std::string log_path = "log/0.txt";
 	tree.log_path = log_path;
 	std::ofstream flog(log_path);
-	flog << "ko is " << (penalty_each_ko > 0 ? "forbidden" : "allowed") << "\n";
+	flog << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 	flog.close();
 
 	int fn = 0;
@@ -133,10 +133,9 @@ void ReadConfiguration(int argc, char **argv){
 				case 15: resume_sgf_path 	= str; break;
 				case 16: cfg_worker_cnt 	= stoi(str); break;
 				case 17: use_pondering 	= (str == "true" || str == "on"); break;
-				case 18: cfg_heat		= stod(str); break;
-				case 19: custom_keypoint	= stoi(str); break;
-				case 20: penalty_each_ko= stoi(str); break;
-				case 21: test_sgfs		= (str == "true" || str == "on"); break;
+				case 18: cfg_custom_keypoint	= stoi(str); break;
+				case 19: cfg_avoid_ko= stoi(str); break;
+				case 20: cfg_test_sgfs		= (str == "true" || str == "on"); break;
 				default: break;
 			}
 			++line_cnt;

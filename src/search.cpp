@@ -11,7 +11,7 @@ using std::cerr;
 using std::endl;
 
 // AQ-PS
-double cfg_heat = 1.0;
+double cfg_heat = 0.0;
 
 double cfg_main_time = 0;
 double cfg_byoyomi = 5;
@@ -683,7 +683,7 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		/*
 		if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
 		{
-			action_value -= penalty_each_ko;
+			action_value -= cfg_avoid_ko;
 		}
 		*/
 		

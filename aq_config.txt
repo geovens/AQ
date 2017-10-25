@@ -24,12 +24,10 @@
 -master =off
 -worker =off
 -pb path =pb
--resume sgf path =
+-resume sgf path =../../test_problems/4/III
 -worker count =1
 -use pondering =off
 
 ### AQ-PS ###
--heat =0.0
 -custom keypoint =0
--forbid ko=1
--test sgf=off
+-avoid ko=1
