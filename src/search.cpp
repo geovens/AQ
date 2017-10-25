@@ -356,10 +356,16 @@ int Tree::CreateNode(Board& b) {
 		std::vector<std::pair<double, int>> prob_list;
 		for(int i=0;i<b.empty_cnt;++i) {
 			int v = b.empty[i];
+			// temp
+			/*
 			if(	!b.IsLegal(b.my,v)	||
 				b.IsEyeShape(b.my,v)||
 				b.IsSeki(v)) 	continue;
-
+			*/
+			if (!b.IsLegal(b.my, v) ||
+				b.IsEyeShape(b.my, v) ||
+				b.IsSeki(v) ||
+				(b.IsKo(b.her, v) && b.my == b.ko_penalty_my)) continue;
 			prob_list.push_back(std::make_pair(pn->prob[v].load() * inv_sum, v));
 		}
 		std::sort(prob_list.begin(), prob_list.end(), std::greater<std::pair<double,int>>());
@@ -674,10 +680,12 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		double tmpprob = sqrt(pc->prob);
 		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
+		/*
 		if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
 		{
 			action_value -= penalty_each_ko;
 		}
+		*/
 		
 		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
 
@@ -756,13 +764,27 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 
 	// 6. ‹Ç–Ê‚ði‚ß‚é. Play next_mvoe.
 	// temp
+	bool match; int testc = 0;
+	if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
+	{
+		match = true;
+		testc = b.her;
+	}
+	else
+	{
+		match = false;
+		
+	}
 	bool ko_taken = false;
 	b.PlayLegal(next_move, &ko_taken);
-	//if (ko_taken)
-	//{
-	//	b.ko_penalty += penalty_each_ko;
-	//	cerr << "ko, penalty=" << b.ko_penalty << "\n";
-	//}
+	if (ko_taken)
+	{
+		if (match && rand() % 50 == 0)
+		{
+			PrintBoard(b, next_move);
+			cerr << "WARNING: ko condition does not match? testc=" << testc << "\n";
+		}
+	}
 
 	// 7. ƒm[ƒh‚ð“WŠJ‚·‚é
 	//    Expand the next node.
