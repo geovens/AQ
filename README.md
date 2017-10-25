@@ -19,7 +19,7 @@ More precisely, the vertices in a 9x9 area centered at the keypoint worth 1 poin
 
 ### Ko Avoiding
 
-By default, the bot tries to avoid ko when searching the best local sequence. If 
+By default, the bot tries to avoid ko when searching the best local sequence. You can use GTP command 'avoidko 0' or 'avoidko 1' to turn this feature off or on.
 
 ### Benchmark
 Graded Go Problems for Beginners Volume 4, section III life and death problems: the first move is played the same as the answer 32/40 (80%) of the time for the first 40 problems (more to be tested). (i7-4790 CPU, 5 threads, 20s per move. Hardware and time matters a lot.) 
