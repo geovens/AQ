@@ -1,14 +1,10 @@
 ﻿### Hardware setting ###
-# Set number of 0 for 'gpu count'.
-# 'thread count' is fixed on AQ-mini.
 -gpu count =0
 -thread count =5
 
 ### Time contorol setting ###
-# If using 'time_left' command via GTP,
-# set 'time controll' to 'off'.
 -main time[sec] =0
--byoyomi[sec] =10
+-byoyomi[sec] =20
 -time controll =on
 
 ### Thinking setting ###
@@ -24,10 +20,11 @@
 -master =off
 -worker =off
 -pb path =pb
--resume sgf path =../../test_problems/4/III
+-resume sgf path =
 -worker count =1
 -use pondering =off
 
 ### AQ-PS ###
 -custom keypoint =0
 -avoid ko=1
+-test sgf=off
