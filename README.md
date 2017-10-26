@@ -15,7 +15,7 @@ https://github.com/geovens/AQ-PS/releases
 ### Usage
 
 Use it in Sabaki or GoGui.  
-There are some settings in aq_config.txt, among which and you might care about -thread count and -byoyomi[sec] (seconds per move).
+There are some settings in aq_config.txt, among which you might care about -thread count and -byoyomi[sec] (seconds per move).
 
 ### Keypoint
 There is a 'keypoint' on the board, around which AQ-PS will pay full attention to, instead of finding big open moves or thinking about the whole-board. By default the keypoint is automatically set around the middle of existing stones on the board, and should work fine for most life and death problems. You can also manually set the position of the keypoint using GTP command 'keypoint'. For example, 'keypoint a1' sets the bottom left corner as the only area that the bot will be interested in. Manually setting the position of the keypoint is necessary when there are many stones all across the board, as in a real game.
