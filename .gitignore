@@ -1,6 +1,8 @@
 vs/build
 vs/bin
 vs/tensorflow/lib
+test_problems/4
+test_problems/M
 test_problems/test
 release
 
