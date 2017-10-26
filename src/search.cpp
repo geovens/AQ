@@ -1459,8 +1459,7 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
 		// 2. policy_que‚ðˆ—. Process policy_que.
 #ifdef CPU_ONLY
-		//if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
-		if (true){
+		if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
 #else
 		if (policy_que_cnt > 0) {
 #endif //CPU_ONLY
