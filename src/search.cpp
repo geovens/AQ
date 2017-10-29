@@ -677,7 +677,11 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		//    Calculate action value.
 		game_cnt = use_rollout? (double)pc->rollout_cnt : (double)pc->value_cnt;
 		
-		double tmpprob = sqrt(pc->prob);
+		// temp
+		double tmpprob = pc->prob;
+		//double tmpprob = sqrt(pc->prob);
+
+
 		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
 		/*
@@ -1459,7 +1463,9 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
 		// 2. policy_que‚ðˆ—. Process policy_que.
 #ifdef CPU_ONLY
-		if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
+		// temp
+		//if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
+		if (policy_que_cnt > 0){
 #else
 		if (policy_que_cnt > 0) {
 #endif //CPU_ONLY
