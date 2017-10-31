@@ -131,7 +131,7 @@ void Tree::Clear(){
 #ifdef CPU_ONLY
 	thread_cnt = cfg_thread_cnt;
 	gpu_cnt = 1;
-	expand_cnt = 64;
+	expand_cnt = 24;
 #else
 	thread_cnt = (cfg_thread_cnt > cfg_gpu_cnt) ? cfg_thread_cnt : cfg_gpu_cnt + 1;
 	gpu_cnt = cfg_gpu_cnt;
@@ -681,8 +681,8 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		double tmpprob = pc->prob;
 		//double tmpprob = sqrt(pc->prob);
 
-
-		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
+		double rollout_score_coef = 0.5;
+		action_value = rollout_score_coef * rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
 		/*
 		if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
@@ -759,8 +759,11 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	{
 		// ’uŠ·•\‚ª8Š„–„‚Ü‚Á‚Ä‚¢‚é‚Æ‚«‚ÍV‹Kì¬‚µ‚È‚¢
 		// New node is not chreated when the transposition table is filled by 80%.
-		if(node_cnt < 0.8 * node_limit) 
+		if (node_cnt < 0.8 * node_limit)
+		{
 			expand_node = true;
+			//if (rand() % 100 == 0) cerr << node_cnt << "\n";
+		}
 		else
 		{
 			need_rollout = true;
@@ -1035,7 +1038,10 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		std::vector<FeedTensor> ft_list;
 		ft_list.push_back(ft);
 
-		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
+		// temp
+		//PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
+		FakePolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
+
 		UpdateNodeProb(root_node_idx, prob_list[0]);
 	}
 
@@ -1308,10 +1314,12 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 	const int max_policy_cnt = 96;
 #endif //CPU_ONLY
 
+	int waittime = 0;
 	for (;;){
 		if(value_que_cnt > max_value_cnt || policy_que_cnt > max_policy_cnt){
 			// Wait for 1msec if the queue is full.
 			std::this_thread::sleep_for(std::chrono::microseconds(1000)); //1 msec
+			waittime++;
 		}
 		else{
 			Board b_ = b;
@@ -1369,6 +1377,7 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 			}
 		}
 	}
+	cerr << waittime << "\n";
 }
 
 /**
@@ -1393,6 +1402,8 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
 	for (;;)
 	{
+		// temp
+		std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
 		// 1. value_que‚ğˆ—. Process value_que.
 		if(value_que_cnt > 0){
