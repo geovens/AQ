@@ -1402,9 +1402,6 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
 	for (;;)
 	{
-		// temp
-		std::this_thread::sleep_for(std::chrono::microseconds(1000));
-
 		// 1. value_queを処理. Process value_que.
 		if(value_que_cnt > 0){
 			int eval_cnt = 0;
@@ -1512,6 +1509,11 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 					UpdateNodeProb(pque_th[i].node_idx, prob_list[i]);
 				}
 			}
+		}
+		else
+		{
+			// temp
+			std::this_thread::sleep_for(std::chrono::microseconds(1000));
 		}
 
 		// 3. 制限時間が経過したか、stop_thinkフラグが立ったとき評価終了
