@@ -12,144 +12,143 @@ constexpr int feature_cnt = 49;
  *  着手確率を予測するネットワーク
  *  Calculate probability distribution with the Policy Network.
  */
-void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
+void FakePolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 		std::vector<std::array<double,EBVCNT>>& prob_list,
 		double temp, int sym_idx)
 {
-	if (false && keypoint > 0)
-	{
-		prob_list.clear();
-		int ft_cnt = (int)ft_list.size();
+	prob_list.clear();
+	int ft_cnt = (int)ft_list.size();
 		
-		for (int i = 0; i < ft_cnt; ++i) {
-			std::array<double, EBVCNT> prob;
-			prob.fill(0.0);
+	for (int i = 0; i < ft_cnt; ++i) {
+		std::array<double, EBVCNT> prob;
+		prob.fill(0.0);
 
-			double sumprob = 0;
-			for (int j = 0; j < BVCNT; ++j) {
-				int v = rtoe[j];
+		double sumprob = 0;
+		for (int j = 0; j < BVCNT; ++j) {
+			int v = rtoe[j];
 
-				// AQ-PS
-				if (keypoint > 0)
+			// AQ-PS
+			if (keypoint > 0)
+			{
+				int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
+				if (dist < 4)
 				{
-					int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
-					if (dist < 4)
-					{
-						prob[v] = 0.06;
-					}
-					else if (dist < 8)
-					{
-						prob[v] = 0.03;
-					}
-					else if (dist < 12)
-					{
-						prob[v] = 0.01;
-					}
-					else
-					{
-						prob[v] = 0;
-					}
+					prob[v] = 0.05;
 				}
-
-				// 3線より中央側のシチョウを逃げる手の確率を下げる
-				// Reduce probability of moves escaping from Ladder.
-				if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
-
-				sumprob += prob[v];
+				else if (dist < 8)
+				{
+					prob[v] = 0.01;
+				}
+				else if (dist < 12)
+				{
+					prob[v] = 0.002;
+				}
+				else
+				{
+					prob[v] = 0;
+				}
 			}
 
-			// normalization
-			for (int j = 0; j < BVCNT; ++j) {
-				int v = rtoe[j];
-				prob[v] /= sumprob;
-			}
+			// 3線より中央側のシチョウを逃げる手の確率を下げる
+			// Reduce probability of moves escaping from Ladder.
+			if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
 
-			prob_list.push_back(prob);
+			sumprob += prob[v];
+		}
+
+		// normalization
+		for (int j = 0; j < BVCNT; ++j) {
+			int v = rtoe[j];
+			prob[v] /= sumprob;
+		}
+
+		prob_list.push_back(prob);
+	}
+}
+
+void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
+	std::vector<std::array<double, EBVCNT>>& prob_list,
+	double temp, int sym_idx)
+{
+	prob_list.clear();
+	int ft_cnt = (int)ft_list.size();
+	Tensor pn_x(DT_FLOAT, TensorShape({ ft_cnt, BVCNT, feature_cnt }));
+	auto x_eigen = pn_x.tensor<float, 3>();
+	Tensor sm_temp(DT_FLOAT, TensorShape());
+	sm_temp.scalar<float>()() = (float)temp;
+
+	std::vector<std::pair<string, Tensor>> inputs;
+	std::vector<Tensor> outputs;
+
+	std::vector<int> sym_idxs;
+	if (sym_idx > 7) {
+		for (int i = 0; i < ft_cnt; ++i) {
+			sym_idxs.push_back(mt_int8(mt_32));
 		}
 	}
-	else
-	{
 
-		prob_list.clear();
-		int ft_cnt = (int)ft_list.size();
-		Tensor pn_x(DT_FLOAT, TensorShape({ ft_cnt, BVCNT, feature_cnt }));
-		auto x_eigen = pn_x.tensor<float, 3>();
-		Tensor sm_temp(DT_FLOAT, TensorShape());
-		sm_temp.scalar<float>()() = (float)temp;
+	for (int i = 0; i < ft_cnt; ++i) {
+		for (int j = 0; j < BVCNT; ++j) {
+			for (int k = 0; k < feature_cnt; ++k) {
 
-		std::vector<std::pair<string, Tensor>> inputs;
-		std::vector<Tensor> outputs;
+				if (sym_idx == 0) x_eigen(i, j, k) = ft_list[i].feature[j][k];
+				else if (sym_idx > 7) x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idxs[i]][j][0]][k];
+				else x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idx][j][0]][k];
 
-		std::vector<int> sym_idxs;
-		if (sym_idx > 7) {
-			for (int i = 0; i < ft_cnt; ++i) {
-				sym_idxs.push_back(mt_int8(mt_32));
 			}
 		}
+	}
 
-		for (int i = 0; i < ft_cnt; ++i) {
-			for (int j = 0; j < BVCNT; ++j) {
-				for (int k = 0; k < feature_cnt; ++k) {
+	inputs = { {"x_input", pn_x},{"temp", sm_temp} };
+	sess->Run(inputs, { "fc/yfc" }, {}, &outputs);
 
-					if (sym_idx == 0) x_eigen(i, j, k) = ft_list[i].feature[j][k];
-					else if (sym_idx > 7) x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idxs[i]][j][0]][k];
-					else x_eigen(i, j, k) = ft_list[i].feature[sv.rv[sym_idx][j][0]][k];
+	auto output_v = outputs[0].matrix<float>();
 
-				}
-			}
-		}
+	for (int i = 0; i < ft_cnt; ++i) {
+		std::array<double, EBVCNT> prob;
+		prob.fill(0.0);
 
-		inputs = { {"x_input", pn_x},{"temp", sm_temp} };
-		sess->Run(inputs, { "fc/yfc" }, {}, &outputs);
+		double sumprob = 0;
+		for (int j = 0; j < BVCNT; ++j) {
+			int v = rtoe[j];
 
-		auto output_v = outputs[0].matrix<float>();
+			if (sym_idx == 0) prob[v] = (double)output_v(i, j);
+			else if (sym_idx > 7) prob[v] = (double)output_v(i, sv.rv[sym_idxs[i]][j][1]);
+			else prob[v] = (double)output_v(i, sv.rv[sym_idx][j][1]);
 
-		for (int i = 0; i < ft_cnt; ++i) {
-			std::array<double, EBVCNT> prob;
-			prob.fill(0.0);
-
-			double sumprob = 0;
-			for (int j = 0; j < BVCNT; ++j) {
-				int v = rtoe[j];
-
-				if (sym_idx == 0) prob[v] = (double)output_v(i, j);
-				else if (sym_idx > 7) prob[v] = (double)output_v(i, sv.rv[sym_idxs[i]][j][1]);
-				else prob[v] = (double)output_v(i, sv.rv[sym_idx][j][1]);
-
-				if (keypoint > 0)
+			if (keypoint > 0)
+			{
+				int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
+				if (dist < 4)
 				{
-					int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
-					if (dist < 4)
-					{
-						//if (prob[v] > 0.2)
-						//	prob[v] = 0.2;
-					}
-					else if (dist < 8)
-					{
-						//if (prob[v] > 0.2)
-						//	prob[v] = 0.2;
-					}
-					else
-					{
-						prob[v] = 0;
-					}
+					//if (prob[v] > 0.2)
+					//	prob[v] = 0.2;
 				}
-
-				// 3線より中央側のシチョウを逃げる手の確率を下げる
-				// Reduce probability of moves escaping from Ladder.
-				if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
-
-				sumprob += prob[v];
+				else if (dist < 8)
+				{
+					//if (prob[v] > 0.2)
+					//	prob[v] = 0.2;
+				}
+				else
+				{
+					prob[v] = 0;
+				}
 			}
 
-			// normalization
-			for (int j = 0; j < BVCNT; ++j) {
-				int v = rtoe[j];
-				prob[v] /= sumprob;
-			}
+			// 3線より中央側のシチョウを逃げる手の確率を下げる
+			// Reduce probability of moves escaping from Ladder.
+			if (ft_list[i].feature[j][46] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
 
-			prob_list.push_back(prob);
+			sumprob += prob[v];
 		}
+
+		// normalization
+		for (int j = 0; j < BVCNT; ++j) {
+			int v = rtoe[j];
+			prob[v] /= sumprob;
+		}
+
+		prob_list.push_back(prob);
 	}
 }
 
