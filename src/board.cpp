@@ -1258,13 +1258,10 @@ int Board::SelectRandomMove() {
 
 		// ä·ÇñÑÇﬂÇ∏ÉZÉLÇ≈Ç‡Ç»Ç¢çáñ@éËÇ©
 		// Break if next_move is legal and dosen't fill an eye and Seki.
-		// temp!!!
-		/*
 		if ( !IsEyeShape(my, next_move) 	&&
 			 IsLegal(my, next_move) 	&&
 			 !IsSeki(next_move)			) break;
-		*/
-		if (IsLegal(my, next_move) && !IsEyeShape(my, next_move)) break;
+
 
 		++i;
 		if(i == empty_cnt) i = 0;
