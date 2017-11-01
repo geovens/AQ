@@ -678,10 +678,10 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		game_cnt = use_rollout? (double)pc->rollout_cnt : (double)pc->value_cnt;
 		
 		// temp
-		double tmpprob = pc->prob;
-		//double tmpprob = sqrt(pc->prob);
+		//double tmpprob = pc->prob;
+		double tmpprob = sqrt(pc->prob);
 
-		double rollout_score_coef = 0.5;
+		double rollout_score_coef = 1;
 		action_value = rollout_score_coef * rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
 		/*
@@ -1039,8 +1039,8 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		ft_list.push_back(ft);
 
 		// temp
-		//PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
-		FakePolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
+		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
+		//FakePolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
 
 		UpdateNodeProb(root_node_idx, prob_list[0]);
 	}
