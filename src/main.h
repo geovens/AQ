@@ -13,5 +13,6 @@
 void ReadConfiguration(int argc, char **argv);
 void SelfMatch();
 void DoSgfs();
+void Do1001Sgfs();
 
 
