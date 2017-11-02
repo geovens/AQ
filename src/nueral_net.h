@@ -18,7 +18,7 @@
 void PolicyNet(tensorflow::Session* sess,
 		std::vector<FeedTensor>& ft_list,
 		std::vector<std::array<double,EBVCNT>>& prob_list,
-		double temp=0.67, int sym_idx=0);
+		double temp=0.67, int sym_idx=0, int mod = 0);
 
 void FakePolicyNet(tensorflow::Session* sess,
 		std::vector<FeedTensor>& ft_list,

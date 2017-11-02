@@ -68,7 +68,7 @@ void FakePolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 
 void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 	std::vector<std::array<double, EBVCNT>>& prob_list,
-	double temp, int sym_idx)
+	double temp, int sym_idx, int mod)
 {
 	prob_list.clear();
 	int ft_cnt = (int)ft_list.size();
@@ -121,13 +121,19 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 				int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
 				if (dist < 4)
 				{
-					//if (prob[v] > 0.2)
-					//	prob[v] = 0.2;
+					if (mod == 1)
+					{
+						if (prob[v] < 0.01)
+							prob[v] = 0.01;
+					}
 				}
 				else if (dist < 8)
 				{
-					//if (prob[v] > 0.2)
-					//	prob[v] = 0.2;
+					if (mod == 1)
+					{
+						if (prob[v] < 0.001)
+							prob[v] = 0.001;
+					}
 				}
 				else
 				{

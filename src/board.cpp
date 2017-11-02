@@ -834,6 +834,9 @@ void Board::PlayLegal(int v, bool* ko_taken) {
 	assert(v == PASS || color[v] == 0);
 	assert(v != ko);
 
+	// temp
+	searchdepth++;
+	
 	// 1. Šû•ˆî•ñ‚ğXV
 	//    Update history.
 	int prev_empty_cnt = empty_cnt;

@@ -194,6 +194,7 @@ void Tree::AddPolicyQue(int node_idx, Board& b){
 	PolicyEntry pe;
 	pe.node_idx = node_idx;
 	pe.ft.Set(b, PASS);
+	pe.searchdepth = b.searchdepth;
 	{
 		std::lock_guard<std::mutex> lock(mtx_pque);
 		policy_que.push_back(pe);
@@ -588,6 +589,7 @@ void Tree::DeleteNodeIndex(int node_idx){
 int Tree::UpdateRootNode(Board&b){
 
 	move_cnt = b.move_cnt;
+	b.searchdepth = 0;
 	int node_idx = CreateNode(b);
 
 	if(root_node_idx != node_idx) DeleteNodeIndex(node_idx);
@@ -611,9 +613,6 @@ int Tree::UpdateRootNode(Board&b){
 double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		std::vector<std::pair<int,int>>& serch_route, LGR& lgr_, Statistics& stat_)
 {
-	// AQ-PS
-	b.searchdepth++;
-
 	Node *pn = &node[node_idx];
 	Child *pc;
 	bool use_rollout = (lambda != 1.0);
@@ -1039,7 +1038,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		ft_list.push_back(ft);
 
 		// temp
-		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
+		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx, 1);
 		//FakePolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
 
 		UpdateNodeProb(root_node_idx, prob_list[0]);
@@ -1501,8 +1500,21 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 					ft_list.push_back(pque_th[i].ft);
 				}
 
+				if (eval_cnt > 1)
+				{
+					cerr << "WARNING: eval_cnt > 1, shouldn't happen in CPU only version\n";
+				}
+
+				// temp
 				// c. Evaluate policy.
-				PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx);
+				//PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx);
+				if (pque_th[0].searchdepth < 1)
+				{
+					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 1);
+					cerr << "one\n";
+				}
+				else
+					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 0);
 
 				// d. ノードの確率分布を更新する. Update probability of nodes.
 				for(int i=0;i<eval_cnt;++i){
