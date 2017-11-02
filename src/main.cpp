@@ -55,7 +55,7 @@ void DoSgfs()
 		tree.log_path = log_path;
 
 		sgf.GenerateBoard(b, sgf.move_cnt);
-		tree.UpdateRootNode(b);
+		//tree.UpdateRootNode(b);
 
 		int blackfirst = sgf.filepath.find("w") != std::string::npos ? 0 : 1;
 		if (blackfirst != b.my)
@@ -114,7 +114,7 @@ void Do1001Sgfs()
 		tree.log_path = log_path;
 
 		sgf.GenerateBoard(b, 0);
-		tree.UpdateRootNode(b);
+		//tree.UpdateRootNode(b);
 		int correctmove = sgf.move_history[0];
 
 		int blackfirst = sgf.is_black_first ? 1 : 0;
