@@ -40,7 +40,7 @@ void DoSgfs()
 	std::ofstream fo("output.txt");
 	fo.close();
 	std::string log_path = "log/0.txt";
-	tree.log_path = log_path;
+
 	std::ofstream flog(log_path);
 	flog << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 	flog.close();
@@ -52,6 +52,7 @@ void DoSgfs()
 		fn++;
 		std::cerr << "\n\n" << sgf.filepath << "\n";
 		tree.Clear();
+		tree.log_path = log_path;
 
 		sgf.GenerateBoard(b, sgf.move_cnt);
 		tree.UpdateRootNode(b);
