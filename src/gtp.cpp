@@ -90,7 +90,7 @@ int CallGTP(){
 		SgfData sgf_read;
 		sgf_read.ImportData(resume_sgf_path);
 		sgf_read.GenerateBoard(b, sgf_read.move_cnt);
-		//tree.UpdateRootNode(b);
+		tree.UpdateRootNode(b);
 		sgf = sgf_read;
 	}
 
@@ -353,7 +353,7 @@ int CallGTP(){
 
 			// c. 局面を進める. Play the move.
 			b.PlayLegal(next_move);
-			//tree.UpdateRootNode(b);
+			tree.UpdateRootNode(b);
 
 			// d. 着手のGTPコマンドを送る. Send response of the next move.
 			string str_nv = CoordinateString(next_move);
@@ -521,7 +521,7 @@ int CallGTP(){
 					cluster.SendCommand(ss.str());
 				}
 			}
-			//tree.UpdateRootNode(b);
+			tree.UpdateRootNode(b);
 
 			// c. ログファイルを更新する. Update logs.
 			if(!is_worker){
@@ -545,11 +545,9 @@ int CallGTP(){
 				SgfData sgf_read;
 				sgf_read.ImportData(resume_sgf_path);
 				sgf_read.GenerateBoard(b, sgf_read.move_cnt);
-				//tree.UpdateRootNode(b);
+				tree.UpdateRootNode(b);
 				sgf = sgf_read;
 			}
-
-			//tree.UpdateRootNode(b);
 
 			SendGTP("= \n\n");
 		}
