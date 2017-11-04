@@ -880,11 +880,19 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	// 10. virtual loss‚ð‰ðÁ&Ÿ—¦XV
 	//     Subtract virtual loss and update results.
 	if(use_rollout){
+		// temp
+		/*
 		FetchAdd(&pc->rollout_win, (float)vloss_cnt + rollout_result);
 		pc->rollout_cnt += 1 - vloss_cnt;
 		pn->total_game_cnt += 1 - vloss_cnt;
 		FetchAdd(&pn->rollout_win, rollout_result);
 		pn->rollout_cnt += 1;
+		*/
+		FetchAdd(&pc->rollout_win, (float)vloss_cnt + rollout_result * b.searchdepth);
+		pc->rollout_cnt += b.searchdepth - vloss_cnt;
+		pn->total_game_cnt += b.searchdepth - vloss_cnt;
+		FetchAdd(&pn->rollout_win, rollout_result * b.searchdepth);
+		pn->rollout_cnt += b.searchdepth;
 	}
 	else{
 		FetchAdd(&pc->value_win, (float)vloss_cnt);
