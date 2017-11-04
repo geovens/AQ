@@ -14,7 +14,7 @@ I tested AQ-PS with problems on books. For a problem, if the first move generate
 1001 Life and Death Problems:  
 	942/1001 (94.1%), using i7-7700 CPU, 3 threads, 10 seconds per move.  
   
-Graded Go Problems for Beginners Volume 4, section 3 life and death problems, first 80 problems:  
+Graded Go Problems for Beginners Volume 4, section 4 life and death problems, first 80 problems:  
 	61/80 (76%), using i7-7700 CPU, 3 threads, 20 seconds per move.  
 	66/80 (83%), using i7-7700 CPU, 3 threads, 60 seconds per move.  
   

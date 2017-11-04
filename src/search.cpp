@@ -881,18 +881,19 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	//     Subtract virtual loss and update results.
 	if(use_rollout){
 		// temp
-		/*
+		
 		FetchAdd(&pc->rollout_win, (float)vloss_cnt + rollout_result);
 		pc->rollout_cnt += 1 - vloss_cnt;
 		pn->total_game_cnt += 1 - vloss_cnt;
 		FetchAdd(&pn->rollout_win, rollout_result);
 		pn->rollout_cnt += 1;
-		*/
+		/*
 		FetchAdd(&pc->rollout_win, (float)vloss_cnt + rollout_result * b.searchdepth);
 		pc->rollout_cnt += b.searchdepth - vloss_cnt;
 		pn->total_game_cnt += b.searchdepth - vloss_cnt;
 		FetchAdd(&pn->rollout_win, rollout_result * b.searchdepth);
 		pn->rollout_cnt += b.searchdepth;
+		*/
 	}
 	else{
 		FetchAdd(&pc->value_win, (float)vloss_cnt);
@@ -1009,7 +1010,10 @@ std::string CoordinateString(int v){
 int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 						bool is_errout, bool is_ponder)
 {
-	b.ko_penalty_my = b.my;
+	if (cfg_avoid_ko > 0)
+		b.ko_penalty_my = b.my;
+	else
+		b.ko_penalty_my = -1;
 	b.searchdepth = 0;
 
 	// 1. root node‚ðXV. Update root node.
@@ -1357,7 +1361,9 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 			else if(!is_ponder && (byoyomi == 0 || (double)left_time > byoyomi))
 			{
 				std::vector<Child*> rc;
+				// temp!
 				SortChildren(pn, rc);
+				//SortChildrenByRollout(pn, rc);
 
 				int th_rollout_cnt = (int)pn->total_game_cnt - initial_game_cnt;
 				int rc0_cnt = std::max((int)rc[0]->rollout_cnt, (int)rc[0]->value_cnt);
@@ -1615,7 +1621,9 @@ std::string Tree::BestSequence(int node_idx, int head_move, int max_move){
 	std::vector<Child*> child_list;
 	for(int i=0;i<max_move;++i){
 		if(pn->child_cnt <= 1) break;
+		// temp!
 		SortChildren(pn, child_list);
+		//SortChildrenByRollout(pn, child_list);
 
 		string move_str = CoordinateString(child_list[0]->move);
 		if(move_str.length() == 2) move_str += " ";
