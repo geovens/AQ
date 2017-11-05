@@ -1,6 +1,6 @@
 ﻿### Hardware setting ###
 -gpu count =0
--thread count =5
+-thread count =3
 
 ### Time contorol setting ###
 -main time[sec] =0
