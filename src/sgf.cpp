@@ -46,7 +46,7 @@ void SgfData::AddMove(int v){
  */
 int SgfData::ConvertToVertex(string aa) {
 	// temp!!!!!
-	return ConvertToVertex13to19(aa);
+	//return ConvertToVertex13to19(aa);
 
 	// 入力サイズが2でないときはパスを返す
 	// Return PASS if input size is not 2.

@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 	if(self_match)
 		SelfMatch();
 	else if (cfg_test_sgfs)	
-		Do1001Sgfs();
+		DoSgfs();
 	else
 		CallGTP();
 
