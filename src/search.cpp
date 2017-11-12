@@ -740,7 +740,7 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	}
 
 	// temp
-	expand_cnt = (int)(((double)b.searchdepth + 5) / 5 * 24);
+	//expand_cnt = (int)(((double)b.searchdepth + 5) / 5 * 24);
 
 	// 4. プレイアウトをするかを判断
 	//    Check if rollout is necessary.
