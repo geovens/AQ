@@ -727,6 +727,27 @@ int CallGTP(){
 
 			SendGTP("= \n\n");
 		}
+		else if (FindStr(gtp_str, "islegal")) {
+
+			SplitString(gtp_str, " ", split_list);
+			if (split_list[0] == "=") split_list.erase(split_list.begin());
+
+			string str_x = split_list[1].substr(0, 1);
+			string str_y = split_list[1].substr(1);
+
+			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
+
+			int x = int(x_list.find(str_x)) % 19 + 1;
+			int y = stoi(str_y);
+
+			int check = xytoe[x][y];
+			if (b.IsLegal(0, check) && b.IsLegal(1, check))
+				SendGTP("= yes\n");
+			else
+				SendGTP("= no\n");
+
+			SendGTP("= \n\n");
+		}
 		else if (FindStr(gtp_str, "chid_info")) {
 
 			tree.SearchTree(b, 0.0, win_rate, false, false);

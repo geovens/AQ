@@ -679,9 +679,9 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		// temp
 		//double tmpprob = pc->prob;
 		double tmpprob = sqrt(pc->prob);
+		cp = (double)3 / (b.searchdepth + 1) + 1;
 
-		double rollout_score_coef = 1;
-		action_value = rollout_score_coef * rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
+		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
 		/*
 		if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
