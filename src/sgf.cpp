@@ -45,8 +45,6 @@ void SgfData::AddMove(int v){
  *  "qf" -> (16,6) -> 142
  */
 int SgfData::ConvertToVertex(string aa) {
-	// temp!!!!!
-	//return ConvertToVertex13to19(aa);
 
 	// 入力サイズが2でないときはパスを返す
 	// Return PASS if input size is not 2.
@@ -72,33 +70,6 @@ int SgfData::ConvertToVertex(string aa) {
 
 }
 
-int SgfData::ConvertToVertex13to19(string aa) {
-
-	// 入力サイズが2でないときはパスを返す
-	// Return PASS if input size is not 2.
-	if (aa.size() != 2) return (board_size + 2)*(board_size + 2);
-
-	// aaを(x,y)実座標に変換
-	// Convert aa to (x, y) of the real board.
-	int x, y;
-	if (isupper(aa.substr(0, 1)[0]) != 0) { x = (int)aa.substr(0, 1)[0] - 'A'; }
-	else { x = (int)aa.substr(0, 1)[0] - 'a'; }
-	if (isupper(aa.substr(1, 1)[0]) != 0) { y = (int)aa.substr(1, 1)[0] - 'A'; }
-	else { y = (int)aa.substr(1, 1)[0] - 'a'; }
-	y += 6;
-
-	// 盤外のときパスを返す
-	// Return PASS when it is on the outer baundary.
-	if (x >= board_size || y >= board_size) {
-		return (board_size + 2)*(board_size + 2);
-	}
-
-	// yを反転させて拡張座標に変換
-	// Convert to the coordinate of the extended board.
-	return (x + 1) + (board_size - y)*(board_size + 2);
-
-}
-
 /**
  *  SGFファイルから対局データを抽出する
  *  Extract data from the SGF file.
@@ -106,19 +77,14 @@ int SgfData::ConvertToVertex13to19(string aa) {
 void SgfData::ImportData(string file_name) {
 
 	// ファイルを開く. Open the file.
-	filepath = file_name;
 	std::stringstream fn;
 	fn << file_name;
 	std::ifstream ifs(fn.str());
 	string str;
 
-	string line;
-	while (ifs && getline(ifs, line))
-		str += line;
-
 	// 1行ずつ読み出していく
 	// Read lines.
-
+	while (ifs && getline(ifs, str)) {
 
 		// 残りが4文字未満のときは次の行に
 		// Move to the next line when remaining letters are less than 4.
@@ -153,8 +119,6 @@ void SgfData::ImportData(string file_name) {
 				// 盤面サイズ. Board size.
 				// 19
 				board_size = stoi(in_br);
-				// temp
-				board_size = 19;
 
 				assert(board_size == 19);
 			}
@@ -328,7 +292,7 @@ void SgfData::ImportData(string file_name) {
 			// Excludes tag[in_br] from str.
 			str = str.substr(close_br + 1);
 		}		
-	
+	}
 
 }
 
@@ -422,45 +386,24 @@ bool SgfData::GenerateBoard(Board& b, int move_idx) {
 	if (move_idx > move_cnt) return false;
 	b.Clear();
 
-	Board bn;
 	// 置石を配置. Place handicap stones.
 	int handicap_stone_cnt = std::max((int)handicap_stone[0].size(), (int)handicap_stone[1].size());
 	for (int i=0;i<handicap_stone_cnt;++i) {
 		if ((int)handicap_stone[1].size() > i) {
-			if (!bn.IsLegal(bn.my, handicap_stone[1][i])) return false;
-			bn.PlayLegal(handicap_stone[1][i]);
+			if (!b.IsLegal(b.my, handicap_stone[1][i])) return false;
+			b.PlayLegal(handicap_stone[1][i]);
 		}
-		else bn.PlayLegal(PASS);
+		else b.PlayLegal(PASS);
 		if ((int)handicap_stone[0].size() > i) {
-			if (!bn.IsLegal(bn.my, handicap_stone[0][i])) return false;
-			bn.PlayLegal(handicap_stone[0][i]);
+			if (!b.IsLegal(b.my, handicap_stone[0][i])) return false;
+			b.PlayLegal(handicap_stone[0][i]);
 		}
-		else if (i != handicap_stone_cnt - 1) bn.PlayLegal(PASS);
+		else b.PlayLegal(PASS);
 	}
-	
 
-	for (int x = 1; x <= 19; x++)
-		for (int y = 19; y >= 1; y--)
-		{
-			int v = xytoe[x][y];
-			if (bn.is_placed[1][v] || bn.is_placed[0][v])
-			{
-				if ((b.my == 0 && bn.is_placed[1][v]) ||
-					(b.my == 1 && bn.is_placed[0][v]))
-				{
-					b.PlayLegal(PASS);
-					--b.pass_cnt[b.her];
-				}
-
-				b.PlayLegal(v);
-				//tree.UpdateRootNode(b);
-			}
-		}
-
-	// temp
 	// 置石は手数に含まない. Reset move_cnt.
-	//b.move_history.clear();
-	//b.move_cnt = 0;
+	b.move_history.clear();
+	b.move_cnt = 0;
 	b.pass_cnt[0] = b.pass_cnt[1] = 0;
 
 	// 初期局面. Initial board.

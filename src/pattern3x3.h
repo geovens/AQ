@@ -90,12 +90,6 @@ public:
 		return (StoneCnt(pl) + EdgeCnt()) == 4;
 	}
 
-	// Return whether it is a single stone and has only one liberty.
-	bool IsAlmostEnclosed(int pl) const
-	{
-		return (StoneCnt(pl) + EdgeCnt()) == 3 && EmptyCnt() == 1;
-	}
-
 	// 上下左右のアタリを更新
 	// Set Atari in each direction (NSEW).
 	void SetAtari(bool bn, bool be, bool bs, bool bw){

@@ -6,19 +6,8 @@ int main(int argc, char **argv) {
 	ReadConfiguration(argc, argv);
 	std::cerr << "configuration loaded.\n";
 
-	// temp
-	/*
-
-	getchar();
-	return 0;
-	*/
-
-	if(self_match)
-		SelfMatch();
-	else if (cfg_test_sgfs)	
-		DoSgfs();
-	else
-		CallGTP();
+	if(self_match) 	SelfMatch();
+	else 			CallGTP();
 
 	//DoSomething();
 
@@ -27,124 +16,6 @@ int main(int argc, char **argv) {
 
 }
 
-void DoSgfs()
-{
-	std::cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
-
-	Board b;
-	Tree tree;
-	tree.InitBoard();
-	std::vector<SgfData> sgf_list;
-	ImportSGFList(resume_sgf_path, sgf_list);
-
-	std::ofstream fo("output.txt");
-	fo.close();
-	std::string log_path = "log/0.txt";
-
-	std::ofstream flog(log_path);
-	flog << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
-	flog.close();
-
-	int fn = 0;
-	double winrate = 0.5;
-	for (SgfData sgf : sgf_list)
-	{
-		fn++;
-		std::cerr << "\n\n" << sgf.filepath << "\n";
-		tree.Clear();
-		tree.log_path = log_path;
-
-		sgf.GenerateBoard(b, sgf.move_cnt);
-		tree.UpdateRootNode(b);
-
-		int blackfirst = sgf.filepath.find("w") != std::string::npos ? 0 : 1;
-		if (blackfirst != b.my)
-		{
-			b.PlayLegal(PASS);
-			sgf.AddMove(PASS);
-			--b.pass_cnt[b.her];
-		}
-		b.SelectKeypoint();
-
-		std::cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
-		flog.open(log_path, std::ios::app);
-		flog << "\n\n" << sgf.filepath << "\n";
-		flog << "interested area is around " << CoordinateString(keypoint) << "\n";
-		flog.close();
-		
-		winrate = 0.5;
-		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
-		b.PlayLegal(next_move);
-		PrintBoard(b, next_move);
-
-		fo.open("output.txt", std::ios::app);
-		fo << sgf.filepath << "," << CoordinateString(next_move) << "\n";
-		fo.close();
-
-
-		PrintBoard(b, next_move, log_path);
-	}
-}
-
-void Do1001Sgfs()
-{
-	std::cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
-
-	Board b;
-	Tree tree;
-	tree.InitBoard();
-	std::vector<SgfData> sgf_list;
-	ImportSGFList(resume_sgf_path, sgf_list);
-
-	std::ofstream fo("output.txt");
-	fo.close();
-	std::string log_path = "log/0.txt";
-
-	std::ofstream flog(log_path);
-	flog << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
-	flog.close();
-
-	int fn = 0;
-	double winrate = 0.5;
-	for (SgfData sgf : sgf_list)
-	{
-		fn++;
-		std::cerr << "\n\n" << sgf.filepath << "\n";
-		tree.Clear();
-		tree.log_path = log_path;
-
-		sgf.GenerateBoard(b, 0);
-		tree.UpdateRootNode(b);
-		int correctmove = sgf.move_history[0];
-
-		int blackfirst = sgf.is_black_first ? 1 : 0;
-		if (blackfirst != b.my)
-		{
-			b.PlayLegal(PASS);
-			sgf.AddMove(PASS);
-			--b.pass_cnt[b.her];
-		}
-		b.SelectKeypoint();
-
-		std::cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
-		flog.open(log_path, std::ios::app);
-		flog << "\n\n" << sgf.filepath << "\n";
-		flog << "interested area is around " << CoordinateString(keypoint) << "\n";
-		flog.close();
-
-		winrate = 0.5;
-		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
-		b.PlayLegal(next_move);
-		PrintBoard(b, next_move);
-
-		fo.open("output.txt", std::ios::app);
-		fo << sgf.filepath << "," << CoordinateString(correctmove) << "," << CoordinateString(next_move) << "\n";
-		fo.close();
-
-
-		PrintBoard(b, next_move, log_path);
-	}
-}
 
 void ReadConfiguration(int argc, char **argv){
 
@@ -194,9 +65,6 @@ void ReadConfiguration(int argc, char **argv){
 				case 15: resume_sgf_path 	= str; break;
 				case 16: cfg_worker_cnt 	= stoi(str); break;
 				case 17: use_pondering 	= (str == "true" || str == "on"); break;
-				case 18: cfg_custom_keypoint	= stoi(str); break;
-				case 19: cfg_avoid_ko= stoi(str); break;
-				case 20: cfg_test_sgfs		= (str == "true" || str == "on"); break;
 				default: break;
 			}
 			++line_cnt;
@@ -230,19 +98,15 @@ void SelfMatch() {
 		win_rate = 0.5;
 
 		while (b.move_cnt<720) {
-			std::cerr << b.move_cnt << "\n";
-			b.SelectKeypoint();
 			next_move = tree.SearchTree(b, 0.0, win_rate, true, false);
 			b.PlayLegal(next_move);
 			PrintBoard(b, next_move);
 			PrintBoard(b, next_move, log_path);
 			if (next_move==PASS && prev_move==PASS) break;
 			prev_move = next_move;
-			//getchar();
 		}
 
 		tree.PrintResult(b);
-		getchar();
 	}
 
 }

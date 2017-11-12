@@ -258,6 +258,8 @@ private:
 	void RemoveStone(int v);
 	void MergeRen(int v_base, int v_add);
 	void RemoveRen(int v);
+	bool IsSelfAtariNakade(int v) const;
+	bool IsSelfAtari(int pl, int v) const;
 	void UpdatePrevPtn(int v);
 	void SubPrevPtn();
 	void AddProb(int pl, int v, double add_prob);
@@ -356,24 +358,15 @@ public:
 	// çsÇ≤Ç∆ÇÃämó¶ÇÃè¨åv. Sum of probability for each rank.
 	double sum_prob_rank[2][BSIZE];
 
-	// AQ-PS
-	// score penalty if a ko is played. used to discorrage kos.
-	//double ko_penalty;
-	int ko_penalty_my;
-	int searchdepth;
-
 	Board();
 	Board(const Board& other);
 	Board& operator=(const Board& other);
 	void Clear();
 	bool IsLegal(int pl, int v) const;
-	bool IsKo(int pl, int v) const;
 	bool IsEyeShape(int pl, int v) const;
 	bool IsFalseEye(int v) const;
 	bool IsSeki(int v) const;
-	bool IsSelfAtariNakade(int v) const;
-	bool IsSelfAtari(int pl, int v) const;
-	void PlayLegal(int v, bool* ko_taken = NULL);
+	void PlayLegal(int v);
 	void ReplaceProb(int pl, int v, double new_prob);
 	void RecalcProbAll();
 	void AddProbPtn12();
@@ -381,7 +374,5 @@ public:
 	int SelectMove();
 	bool IsMimicGo();
 
-	// AQ-PS
-	void SelectKeypoint();
 };
 

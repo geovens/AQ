@@ -42,8 +42,6 @@ public:
 	bool is_black_first;
 	double score;
 
-	std::string filepath;
-
 	SgfData();
 	void Clear();
 	void AddMove(int v);
@@ -51,7 +49,6 @@ public:
 	void ExportData(std::string file_name);
 	void ExportData(std::string file_name, std::vector<std::string> cmt_list);
 	int ConvertToVertex(std::string aa);
-	int ConvertToVertex13to19(std::string aa);
 	bool GenerateBoard(Board& b, int move_idx);
 
 };

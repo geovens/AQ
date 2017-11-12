@@ -10,8 +10,6 @@ using std::string;
 using std::cerr;
 using std::endl;
 
-// AQ-PS
-double cfg_heat = 0.0;
 
 double cfg_main_time = 0;
 double cfg_byoyomi = 5;
@@ -129,9 +127,9 @@ void Tree::SetGPU(std::string sl_path, std::string vl_path, std::vector<int>& gp
 void Tree::Clear(){
 
 #ifdef CPU_ONLY
-	thread_cnt = cfg_thread_cnt;
+	thread_cnt = 2;
 	gpu_cnt = 1;
-	expand_cnt = 24;
+	expand_cnt = 64;
 #else
 	thread_cnt = (cfg_thread_cnt > cfg_gpu_cnt) ? cfg_thread_cnt : cfg_gpu_cnt + 1;
 	gpu_cnt = cfg_gpu_cnt;
@@ -144,7 +142,7 @@ void Tree::Clear(){
 	sym_idx = cfg_sym_idx;
 
 	vloss_cnt = 3;
-	lambda = 0.0;// 0.7;
+	lambda = 0.7;
 	cp = 2.0;
 	policy_temp = 0.7;
 
@@ -194,7 +192,6 @@ void Tree::AddPolicyQue(int node_idx, Board& b){
 	PolicyEntry pe;
 	pe.node_idx = node_idx;
 	pe.ft.Set(b, PASS);
-	pe.searchdepth = b.searchdepth;
 	{
 		std::lock_guard<std::mutex> lock(mtx_pque);
 		policy_que.push_back(pe);
@@ -357,16 +354,10 @@ int Tree::CreateNode(Board& b) {
 		std::vector<std::pair<double, int>> prob_list;
 		for(int i=0;i<b.empty_cnt;++i) {
 			int v = b.empty[i];
-			// temp
-			/*
 			if(	!b.IsLegal(b.my,v)	||
 				b.IsEyeShape(b.my,v)||
 				b.IsSeki(v)) 	continue;
-			*/
-			if (!b.IsLegal(b.my, v) ||
-				b.IsEyeShape(b.my, v) ||
-				b.IsSeki(v) ||
-				(b.IsKo(b.her, v) && b.my == b.ko_penalty_my)) continue;
+
 			prob_list.push_back(std::make_pair(pn->prob[v].load() * inv_sum, v));
 		}
 		std::sort(prob_list.begin(), prob_list.end(), std::greater<std::pair<double,int>>());
@@ -589,7 +580,6 @@ void Tree::DeleteNodeIndex(int node_idx){
 int Tree::UpdateRootNode(Board&b){
 
 	move_cnt = b.move_cnt;
-	b.searchdepth = 0;
 	int node_idx = CreateNode(b);
 
 	if(root_node_idx != node_idx) DeleteNodeIndex(node_idx);
@@ -610,9 +600,10 @@ int Tree::UpdateRootNode(Board&b){
  *  At the leaf node, rollout and evaluation are performed,
  *  and the results are returned.
  */
-double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
+double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		std::vector<std::pair<int,int>>& serch_route, LGR& lgr_, Statistics& stat_)
 {
+
 	Node *pn = &node[node_idx];
 	Child *pc;
 	bool use_rollout = (lambda != 1.0);
@@ -675,30 +666,7 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		// d. action valueを求める
 		//    Calculate action value.
 		game_cnt = use_rollout? (double)pc->rollout_cnt : (double)pc->value_cnt;
-		
-		// temp
-		//double tmpprob = pc->prob;
-		double tmpprob = sqrt(pc->prob);
-		cp = (double)3 / (b.searchdepth + 1) + 1;
-
-		action_value = rate + cp * tmpprob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
-
-		/*
-		if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
-		{
-			action_value -= cfg_avoid_ko;
-		}
-		*/
-		
-		action_value += ((double)rand() / RAND_MAX - 0.5) * 2 * cfg_heat;
-
-		/*
-		if (keypoint > 0)
-		{
-			if (abs(etox[pc->move] - etox[keypoint]) > 8 || abs(etoy[pc->move] - etoy[keypoint]) > 8)
-				action_value -= 1;
-		}
-		*/
+		action_value = rate + cp * pc->prob * sqrt((double)pn->total_game_cnt) / (1 + game_cnt);
 
 		// e. max_idxを更新. Update max_idx.
 		if (action_value > max_avalue) {
@@ -758,41 +726,12 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	{
 		// 置換表が8割埋まっているときは新規作成しない
 		// New node is not chreated when the transposition table is filled by 80%.
-		if (node_cnt < 0.8 * node_limit)
-		{
-			expand_node = true;
-			//if (rand() % 100 == 0) cerr << node_cnt << "\n";
-		}
-		else
-		{
-			need_rollout = true;
-			cerr << "node full\n";
-		}
+		if(node_cnt < 0.8 * node_limit) expand_node = true;
+		else need_rollout = true;
 	}
 
 	// 6. 局面を進める. Play next_mvoe.
-	// temp
-	bool match; int testc = 0;
-	if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
-	{
-		match = true;
-		testc = b.her;
-	}
-	else
-	{
-		match = false;
-		
-	}
-	bool ko_taken = false;
-	b.PlayLegal(next_move, &ko_taken);
-	if (ko_taken)
-	{
-		if (match && rand() % 50 == 0)
-		{
-			PrintBoard(b, next_move);
-			cerr << "WARNING: ko condition does not match? testc=" << testc << "\n";
-		}
-	}
+	b.PlayLegal(next_move);
 
 	// 7. ノードを展開する
 	//    Expand the next node.
@@ -812,19 +751,19 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 			npn->value_cnt += (double)pc->value_cnt;
 			// 手番が変わるので評価値を反転
 			// Reverse evaluation value since turn changes.
-			FetchAdd(&npn->rollout_win, -pc->rollout_win);
-			FetchAdd(&npn->value_win, -pc->value_win);
+			FetchAdd(&npn->rollout_win, -(double)pc->rollout_win);
+			FetchAdd(&npn->value_win, -(double)pc->value_win);
 		}
 	}
 
 	// 8. virtual lossを加える. Add virtual loss.
 	if(use_rollout){
-		FetchAdd(&pc->rollout_win, -(float)vloss_cnt);
+		FetchAdd(&pc->rollout_win, -(double)vloss_cnt);
 		pc->rollout_cnt += vloss_cnt;
 		pn->total_game_cnt += vloss_cnt;
 	}
 	else{
-		FetchAdd(&pc->value_win, -(float)vloss_cnt);
+		FetchAdd(&pc->value_win, -(double)vloss_cnt);
 		pc->value_cnt += vloss_cnt;
 		pn->total_game_cnt += vloss_cnt;
 	}
@@ -832,13 +771,11 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 
 	// 9. 末端であればプレイアウトを行い、次のノードが存在すれば探索を進める
 	//    Roll out if it is the leaf node, otherwise proceed to the next node.
-	float rollout_result = 0.0;
+	double rollout_result = 0.0;
 	if (need_rollout)
 	{
 		// a-1. 局面が未評価であればキューに追加する
 		//      Add into the queue if the board is not evaluated.
-		// temp
-		/*
 		value_result = 0;
 		if(pc->is_value_eval){
 			value_result = (double)pc->value;
@@ -846,7 +783,6 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 		else{
 			AddValueQue(serch_route, b);
 		}
-		*/
 
 		if(use_rollout){
 			// b. 確率分布をコピー. Copy probability.
@@ -857,15 +793,9 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 					b.ReplaceProb(1, v, (double)npn->prob_roll[1][v]);
 				}
 			}
-
-			// temp
 			// c. プレイアウトし、結果を[-1.0, 1.0]に規格化
 			//    Roll out and normalize the result to [-1.0, 1.0].
-			// seams like rollout_result is positive when 'I' win?
-			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias); // <- original!!!
-			rollout_result = -PlayoutLGR(b, lgr_, stat_, komi) * win_bias; // <- temp test!
-			//rollout_result -= b.ko_penalty / 100 * (b.ko_penalty_my == b.my ? 1 : 0);
-			//rollout_result = -PlayoutRandom(b, komi) * win_bias;
+			rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias);
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
 		}
 	}
@@ -880,23 +810,14 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	// 10. virtual lossを解消&勝率更新
 	//     Subtract virtual loss and update results.
 	if(use_rollout){
-		// temp
-		
-		FetchAdd(&pc->rollout_win, (float)vloss_cnt + rollout_result);
+		FetchAdd(&pc->rollout_win, (double)vloss_cnt + rollout_result);
 		pc->rollout_cnt += 1 - vloss_cnt;
 		pn->total_game_cnt += 1 - vloss_cnt;
 		FetchAdd(&pn->rollout_win, rollout_result);
 		pn->rollout_cnt += 1;
-		/*
-		FetchAdd(&pc->rollout_win, (float)vloss_cnt + rollout_result * b.searchdepth);
-		pc->rollout_cnt += b.searchdepth - vloss_cnt;
-		pn->total_game_cnt += b.searchdepth - vloss_cnt;
-		FetchAdd(&pn->rollout_win, rollout_result * b.searchdepth);
-		pn->rollout_cnt += b.searchdepth;
-		*/
 	}
 	else{
-		FetchAdd(&pc->value_win, (float)vloss_cnt);
+		FetchAdd(&pc->value_win, (double)vloss_cnt);
 		pc->value_cnt += -vloss_cnt;
 		pn->total_game_cnt += 1 - vloss_cnt;
 	}
@@ -946,28 +867,6 @@ void SortChildren(Node* pn, std::vector<Child*>& child_list){
 
 }
 
-void SortChildrenByRollout(Node* pn, std::vector<Child*>& child_list) {
-
-	std::vector<std::pair<int, int>> game_cnt_list;
-	for (int i = 0; i<pn->child_cnt; ++i) {
-		double sco = (pn->children[i].rollout_win / std::max(1, (int)pn->children[i].rollout_cnt) + 1) / 2;
-		double ratio = (double)pn->children[i].rollout_cnt / (pn->total_game_cnt + 1);
-		if (ratio < 0.05)
-			sco -= (0.2236 - sqrt(ratio));
-		int game_cnt = (int)(sco * 10000);
-		if (pn->children[i].move == PASS) game_cnt = 0;
-		game_cnt_list.push_back(std::make_pair(game_cnt, i));
-	}
-	std::sort(game_cnt_list.begin(), game_cnt_list.end(), std::greater<std::pair<int, int>>());
-
-	child_list.clear();
-	for (int i = 0; i<pn->child_cnt; ++i) {
-		Child* pc = &pn->children[game_cnt_list[i].second];
-		child_list.push_back(pc);
-	}
-
-}
-
 double Tree::BranchRate(Child* pc){
 
 	double winning_rate;
@@ -1010,11 +909,6 @@ std::string CoordinateString(int v){
 int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 						bool is_errout, bool is_ponder)
 {
-	if (cfg_avoid_ko > 0)
-		b.ko_penalty_my = b.my;
-	else
-		b.ko_penalty_my = -1;
-	b.searchdepth = 0;
 
 	// 1. root nodeを更新. Update root node.
 	if(b.move_cnt == 0) Tree::InitBoard();
@@ -1035,7 +929,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 	// 3. lambdaを進行度に合わせて調整 (0.8 -> 0.5)
 	//    Adjust lambda to progress.
-	//lambda = 0.0;// 0.8 - std::min(0.3, std::max(0.0, ((double)b.move_cnt - 160) / 600));
+	lambda = 0.8 - std::min(0.3, std::max(0.0, ((double)b.move_cnt - 160) / 600));
 	//lambda = 0.7 - std::min(0.4, std::max(0.0, ((double)b.move_cnt - 160) / 500));
 	//cp = 3.0;
 	//expand_cnt = 18;
@@ -1049,10 +943,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		std::vector<FeedTensor> ft_list;
 		ft_list.push_back(ft);
 
-		// temp
-		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx, 1);
-		//FakePolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
-
+		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
 		UpdateNodeProb(root_node_idx, prob_list[0]);
 	}
 
@@ -1080,7 +971,6 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 		// b. 最多試行の子ノードが1000未満のとき、policy netの最上位を返す
 		//    Return the move with highest probability if total game count is less than 1000.
-		
 		if(rc0_game_cnt < 1000){
 			int v = pn->children[pn->prob_order[0]].move;
 			if(is_errout){
@@ -1088,10 +978,9 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 						b.move_cnt + 1, (double)left_time, CoordinateString(v).c_str(), pn->children[pn->prob_order[0]].prob * 100);
 			}
 			win_rate = 0.5;
-			cerr << "shouldn't be here";
 			return v;
 		}
-		
+
 	}
 	// 7-2. 並列探索を行う. Parallel search.
 	else
@@ -1108,14 +997,13 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 				pn->total_game_cnt > 1000 &&
 				(win_rate < 0.08 || win_rate > 0.92);
 
-		if(false && (stand_out || enough_game || almost_win))
-		{		
+		if(stand_out || enough_game || almost_win)
+		{
 			// Skip search.
 			if(is_errout){
 				PrintLog(log_path, "move cnt=%d: left time=%.1f[sec]\n%d[nodes]\n", 
 					b.move_cnt + 1, (double)left_time, node_cnt);
 			}
-			cerr << "skip search\n";
 		}
 		else
 		{
@@ -1168,20 +1056,18 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 			// c. thread_cnt個のスレッドで並列探索を行う
 			//    Search in parallel with thread_cnt threads.
 			ParallelSearch(thinking_time, b, is_ponder);
-			//SortChildren(pn, rc);
-			SortChildrenByRollout(pn, rc);
+			SortChildren(pn, rc);
 
 			// d. 1位の手と2位の手の試行回数が1.5倍以内のとき、思考時間を延長する
 			//    Extend thinking time when the trial number of first move
 			//    and second move is close.
-			/*
 			if(!stop_think && can_extend){
 
 				rc0_game_cnt = std::max((int)rc[0]->rollout_cnt, (int)rc[0]->value_cnt);
 				rc1_game_cnt = std::max((int)rc[1]->rollout_cnt, (int)rc[1]->value_cnt);
 
 				if(rc0_game_cnt < rc1_game_cnt * 1.5){
-					cerr << "the first move and the second move is close\n";
+
 					if(byoyomi > 0 && left_time <= byoyomi){
 						--extension_cnt;
 					}
@@ -1192,21 +1078,11 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 				}
 
 			}
-			*/
 
 			stop_think = false;
 
 			// e. 盤面の占有率を更新. Update statistics of the board.
-			// temp
-			//if (pn->total_game_cnt - prev_game_cnt > 5000)
-			if (pn->total_game_cnt - prev_game_cnt > 500)
-			{
-				stat -= prev_stat;
-			}
-			else
-			{
-				cerr << "didn't update the statistics of the board\n";
-			}
+			if(pn->total_game_cnt - prev_game_cnt > 5000) stat -= prev_stat;
 
 			// f. 探索情報を出力する
 			//    Output search information.
@@ -1228,7 +1104,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 	// 8. 直前の手がパスのとき自分もパスをするか調べる
 	//    Check whether pass should be returned. (Japanese rule)
-	if (japanese_rule && b.prev_move[b.her] == PASS) {
+	if(japanese_rule && b.prev_move[b.her] == PASS){
 		Board b_cpy;
 		int win_cnt = 0;
 		int playout_cnt = 1000;
@@ -1264,16 +1140,6 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		if (win_sign > 0) std::swap(rc[0], rc[1]);
 	}
 
-	double rollout_winrate_0 = ((double)rc[0]->rollout_win / (rc[0]->rollout_cnt + 1) + 1) / 2;
-	double rollout_winrate_1 = ((double)rc[1]->rollout_win / (rc[1]->rollout_cnt + 1) + 1) / 2;
-	if ((rollout_winrate_0 > 0.99 && rollout_winrate_1 > 0.99)
-		|| (rollout_winrate_0 < 0.01 && rollout_winrate_1 < 0.01))
-	{
-		win_rate = rollout_winrate_0;
-		return PASS;
-	}
-
-
 	// 10. 勝率を更新. Update winning_rate.
 	win_rate = BranchRate(rc[0]);
 
@@ -1301,7 +1167,6 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 	Node* pn = &node[root_node_idx];
 	if(pn->child_cnt <= 1){
 		stop_think = true;
-		cerr << "child_cnt <= 1 so stoped\n";
 		return;
 	}
 
@@ -1325,17 +1190,16 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 	const int max_policy_cnt = 96;
 #endif //CPU_ONLY
 
-	int waittime = 0;
+
 	for (;;){
 		if(value_que_cnt > max_value_cnt || policy_que_cnt > max_policy_cnt){
 			// Wait for 1msec if the queue is full.
 			std::this_thread::sleep_for(std::chrono::microseconds(1000)); //1 msec
-			waittime++;
 		}
 		else{
 			Board b_ = b;
 			int node_idx = root_node_idx;
-			float value_result = 0.0;
+			double value_result = 0.0;
 			std::vector<std::pair<int,int>> serch_route;
 			SearchBranch(b_, node_idx, value_result, serch_route, lgr_th, stat_th);
 		}
@@ -1361,9 +1225,7 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 			else if(!is_ponder && (byoyomi == 0 || (double)left_time > byoyomi))
 			{
 				std::vector<Child*> rc;
-				// temp!
 				SortChildren(pn, rc);
-				//SortChildrenByRollout(pn, rc);
 
 				int th_rollout_cnt = (int)pn->total_game_cnt - initial_game_cnt;
 				int rc0_cnt = std::max((int)rc[0]->rollout_cnt, (int)rc[0]->value_cnt);
@@ -1390,7 +1252,7 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 			}
 		}
 	}
-	cerr << waittime << "\n";
+
 }
 
 /**
@@ -1413,8 +1275,8 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 	const int max_eval_policy = 16;
 #endif //CPU_ONLY
 
-	for (;;)
-	{
+	for (;;){
+
 		// 1. value_queを処理. Process value_que.
 		if(value_que_cnt > 0){
 			int eval_cnt = 0;
@@ -1446,7 +1308,6 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 					}
 					std::vector<float> eval_list;
 					ValueNet(sess_value[gpu_idx], ft_list, eval_list, sym_idx);
-					cerr << "ValueNet call in ThreadEvaluate\n";
 
 					// d. 上流ノードのvalue_winを全て更新する
 					//    Update all value information of the upstream nodes.
@@ -1465,7 +1326,7 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 							Node* pn = &node[vque_th[i].node_idx[j]];
 							Child* pc = &pn->children[vque_th[i].child_idx[j]];
 							int add_cnt = vque_th[i].request_cnt;
-							float add_win = float(add_cnt * eval_list[i]);
+							double add_win = double(add_cnt * eval_list[i]);
 							if(int(pn->pl) != leaf_pl) add_win *= -1;
 
 							FetchAdd(&pc->value_win, add_win);
@@ -1484,9 +1345,7 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
 		// 2. policy_queを処理. Process policy_que.
 #ifdef CPU_ONLY
-		// temp
-		//if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
-		if (policy_que_cnt > 0){
+		if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
 #else
 		if (policy_que_cnt > 0) {
 #endif //CPU_ONLY
@@ -1514,21 +1373,8 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 					ft_list.push_back(pque_th[i].ft);
 				}
 
-				if (eval_cnt > 1)
-				{
-					cerr << "WARNING: eval_cnt > 1, shouldn't happen in CPU only version\n";
-				}
-
-				// temp
 				// c. Evaluate policy.
-				//PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx);
-				if (pque_th[0].searchdepth < 1)
-				{
-					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 1);
-					cerr << "one\n";
-				}
-				else
-					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 0);
+				PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx);
 
 				// d. ノードの確率分布を更新する. Update probability of nodes.
 				for(int i=0;i<eval_cnt;++i){
@@ -1536,23 +1382,16 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 				}
 			}
 		}
-		else
-		{
-			// temp
-			std::this_thread::sleep_for(std::chrono::microseconds(1000));
-		}
 
 		// 3. 制限時間が経過したか、stop_thinkフラグが立ったとき評価終了
 		//    Terminate evaluation when the time limit has elapsed or stop_think flag is set.
-		// temp: just once
-		
 		auto t2 = std::chrono::system_clock::now();
 		auto elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000;
 		if(elapsed_time > time_limit || stop_think){
 			stop_think = true;
 			break;
 		}
-		
+
 	}
 
 }
@@ -1621,9 +1460,7 @@ std::string Tree::BestSequence(int node_idx, int head_move, int max_move){
 	std::vector<Child*> child_list;
 	for(int i=0;i<max_move;++i){
 		if(pn->child_cnt <= 1) break;
-		// temp!
 		SortChildren(pn, child_list);
-		//SortChildrenByRollout(pn, child_list);
 
 		string move_str = CoordinateString(child_list[0]->move);
 		if(move_str.length() == 2) move_str += " ";
@@ -1693,11 +1530,9 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 
 	Node* pn = &node[node_idx];
 	std::vector<Child*> rc;
-	// temp
-	//SortChildren(pn, rc);
-	SortChildrenByRollout(pn, rc);
+	SortChildren(pn, rc);
 
-	ost << "|move|count  |value|score |prob |depth| best sequence" << endl;
+	ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
 
 	for(int i=0;i<std::min((int)pn->child_cnt, 10);++i) {
 
@@ -1706,10 +1541,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 
 		if (game_cnt == 0) break;
 
-		// temp for score
-		//double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
-		double rollout_rate = 2 * (pn->pl - 0.5) * pc->rollout_win / std::max(1, (int)pc->rollout_cnt);
-		
+		double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
 		double value_rate = (pc->value_win / std::max(1, (int)pc->value_cnt) + 1) / 2;
 		if(pc->value_win == 0.0) value_rate = 0;
 		if(pc->rollout_win == 0.0) rollout_rate = 0;
@@ -1722,17 +1554,17 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 			seq = BestSequence((int)pc->next_idx, (int)pc->move);
 		}
 
-		ost << "|" << std::left << std::setw(4) << CoordinateString((int)pc->move);  //move
-		ost << "|" << std::right << std::setw(7) << std::min(9999999, game_cnt);  //count
+		ost << "|" << std::left << std::setw(4) << CoordinateString((int)pc->move);
+		ost << "|" << std::right << std::setw(7) << std::min(9999999, game_cnt);
 		auto prc = ost.precision();
 		ost.precision(1);
 		if(pc->value_cnt == 0) ost << "|" << std::setw(5) << "N/A";
-		else ost << "|" << std::setw(5) << std::fixed << value_rate * 100;  //value
+		else ost << "|" << std::setw(5) << std::fixed << value_rate * 100;
 		if(pc->rollout_cnt == 0) ost << "|" << std::setw(5) << "N/A";
-		else ost << "|" << std::setw(6) << std::fixed << rollout_rate * 100;  //roll
-		ost << "|" << std::setw(5) << std::fixed << (double)pc->prob * 100;  //prob
+		else ost << "|" << std::setw(5) << std::fixed << rollout_rate * 100;
+		ost << "|" << std::setw(5) << std::fixed << (double)pc->prob * 100;
 		ost.precision(prc);
-		ost << "|" << std::setw(5) << depth; //depth
+		ost << "|" << std::setw(5) << depth;
 		ost << "| " << seq;
 		ost << endl;
 

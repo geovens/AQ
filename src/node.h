@@ -27,8 +27,6 @@
 class Child {
 
 public:
-	// temp
-	/*
 	std::atomic<int> move;				// 子局面へ至る着手. 			Move to the child board.
 	std::atomic<int> rollout_cnt;		// rolloutの実行回数. 			Number of rollout execution.
 	std::atomic<int> value_cnt;			// value netの評価値の反映回数. 	Number of board evaluation.
@@ -39,18 +37,6 @@ public:
 	std::atomic<int> next_idx;			// 子局面のNodeのインデックス. 	Index of the child node.
 	std::atomic<int64> next_hash;		// 子局面のNodeの盤面ハッシュ. 	Board hash of the child node.
 	std::atomic<double> value;			// 子局面の評価値.				Evaluation value of the child board.
-	std::atomic<bool> is_value_eval;	// value netで評価済か.			Whether the child board has been evaluated.
-	*/
-	std::atomic<short> move;				// 子局面へ至る着手. 			Move to the child board.
-	std::atomic<int> rollout_cnt;		// rolloutの実行回数. 			Number of rollout execution.
-	std::atomic<int> value_cnt;			// value netの評価値の反映回数. 	Number of board evaluation.
-	std::atomic<float> rollout_win;	// rolloutの勝敗の合計値. 		Sum of rollout wins.
-	std::atomic<float> value_win;		// value netの評価値の合計値. 	Sum of evaluation value.
-	std::atomic<float> prob;			// この着手の確率. 				Probability of the move.
-	std::atomic<bool> is_next;			// 子局面のNodeが存在するか. 	Whether the child node exists.
-	std::atomic<int> next_idx;			// 子局面のNodeのインデックス. 	Index of the child node.
-	std::atomic<int64> next_hash;		// 子局面のNodeの盤面ハッシュ. 	Board hash of the child node.
-	std::atomic<float> value;			// 子局面の評価値.				Evaluation value of the child board.
 	std::atomic<bool> is_value_eval;	// value netで評価済か.			Whether the child board has been evaluated.
 
 	Child(){
@@ -104,8 +90,6 @@ public:
 class Node {
 
 public:
-	// temp
-	/*
 	std::atomic<int> pl;						// 手番.					Turn index.
 	std::atomic<int> move_cnt;					// この局面の手数.		Move count.
 	std::atomic<int> child_cnt;					// 子局面の数. 			Number of child branches.
@@ -121,25 +105,6 @@ public:
 	std::atomic<int64> hash;					// このノードの盤面ハッシュ		Board hash of the node.
 	std::atomic<int> prev_ptn[2];				// 直前・二手前の12点パターン		12-point pattern of previous and 2 moves before moves.
 	std::atomic<int> prev_move[2];				// 直前・二手前の着手			Previous and 2 moves before moves.
-	std::atomic<bool> is_visit;				// 現在のroot node下で探索されたか 	Whether this node is searched under the current root node.
-	std::atomic<bool> is_creating;				// Node生成中か						Whether this node is creating.
-	std::atomic<bool> is_policy_eval;			// policy netによる評価が行われたか	Whether probability has been evaluated by the policy network.
-	*/
-	std::atomic<short> pl;						// 手番.					Turn index.
-	std::atomic<short> move_cnt;					// この局面の手数.		Move count.
-	std::atomic<short> child_cnt;					// 子局面の数. 			Number of child branches.
-	Child children[BVCNT + 1];					// 子局面の配列.			Array of child branches.
-	std::atomic<float> prob[EBVCNT];			// 盤面の確率分布		Probability with the policy network.
-	std::atomic<float> prob_roll[2][EBVCNT];	// 盤面の確率分布 		Probability for rollout.
-	std::atomic<short> prob_order[BVCNT + 1];		// 確率の高い順にソートした子ノードのインデックス.		Ordered index of the children.
-	std::atomic<int> total_game_cnt;			// 盤面の探索回数の合計.	Total number of search.
-	std::atomic<int> rollout_cnt;				// rolloutの実行回数				Number of rollout execution.
-	std::atomic<int> value_cnt;					// value netの評価値の反映回数. 	Number of board evaluation.
-	std::atomic<float> rollout_win;			// rolloutの勝敗の合計値.		Sum of rollout wins.
-	std::atomic<float> value_win;				// value netの評価値の合計値.	Sum of evaluation value.
-	std::atomic<int64> hash;					// このノードの盤面ハッシュ		Board hash of the node.
-	std::atomic<short> prev_ptn[2];				// 直前・二手前の12点パターン		12-point pattern of previous and 2 moves before moves.
-	std::atomic<short> prev_move[2];				// 直前・二手前の着手			Previous and 2 moves before moves.
 	std::atomic<bool> is_visit;				// 現在のroot node下で探索されたか 	Whether this node is searched under the current root node.
 	std::atomic<bool> is_creating;				// Node生成中か						Whether this node is creating.
 	std::atomic<bool> is_policy_eval;			// policy netによる評価が行われたか	Whether probability has been evaluated by the policy network.
@@ -196,7 +161,6 @@ public:
 struct PolicyEntry{
 	int node_idx;
 	FeedTensor ft;
-	int searchdepth;
 
 	PolicyEntry(){ node_idx = 0; }
 };

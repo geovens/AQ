@@ -61,7 +61,6 @@ int CallGTP(){
 	bool play_mimic = cfg_mimic;
 	Board b;
 	Tree tree;
-	tree.InitBoard();
 	Cluster cluster;
 #ifdef _WIN32
 	// Cluster cannot be used on Windows.
@@ -90,7 +89,6 @@ int CallGTP(){
 		SgfData sgf_read;
 		sgf_read.ImportData(resume_sgf_path);
 		sgf_read.GenerateBoard(b, sgf_read.move_cnt);
-		tree.UpdateRootNode(b);
 		sgf = sgf_read;
 	}
 
@@ -131,9 +129,9 @@ int CallGTP(){
 		if (gtp_str == "" || gtp_str == "\n"){
 			continue;
 		}
-		else if (FindStr(gtp_str, "name")) SendGTP("= AQ-PS\n\n");
+		else if (FindStr(gtp_str, "name")) SendGTP("= AQ\n\n");
 		else if (FindStr(gtp_str, "protocol_version")) SendGTP("= 2.0\n\n");
-		else if (FindStr(gtp_str, "version")) SendGTP("= 2.0.3.1\n\n");
+		else if (FindStr(gtp_str, "version")) SendGTP("= 2.0.3\n\n");
 		else if (FindStr(gtp_str, "boardsize")) {
 			// Board size setting. (only corresponding to 19 size)
 			// "=boardsize 19", "=boardsize 13", ...
@@ -163,8 +161,6 @@ int CallGTP(){
 			SendGTP("set_free_handicap\n");
 			SendGTP("gogui-play_sequence\n");
 			SendGTP("gogui-analyze_commands\n");
-			SendGTP("keypoint\n");
-			SendGTP("showboard\n");
 			SendGTP("= \n\n");
 		}
 		else if (FindStr(gtp_str, "clear_board"))
@@ -191,10 +187,6 @@ int CallGTP(){
 			SendGTP("= \n\n");
 			cerr << "clear board." << endl;
 		}
-		else if (FindStr(gtp_str, "showboard"))
-		{
-			PrintBoard(b, b.prev_move[b.her]);
-		}
 		else if (FindStr(gtp_str, "komi"))
 		{
 			SplitString(gtp_str, " ", split_list);
@@ -208,42 +200,6 @@ int CallGTP(){
 
 			SendGTP("= \n\n");
 			fprintf(stderr, "set komi=%.1f.\n", tree.komi);
-		}
-		else if (FindStr(gtp_str, "avoidko"))
-		{
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			cfg_avoid_ko = stod(split_list[1]);
-
-			if (is_master) cluster.SendCommand(gtp_str);
-
-			SendGTP("= \n\n");
-			fprintf(stderr, "set penalty each ko=%.1f.\n", cfg_avoid_ko);
-		}
-		else if (FindStr(gtp_str, "keypoint") || FindStr(gtp_str, "keypoing"))
-		{
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			if (split_list[1] == "0" || split_list[1] == "-1")
-				cfg_custom_keypoint = stoi(split_list[1]);
-			else
-			{
-				string str_x = split_list[1].substr(0, 1);
-				string str_y = split_list[1].substr(1);
-
-				string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
-
-				int x = int(x_list.find(str_x)) % 19 + 1;
-				int y = stoi(str_y);
-
-				cfg_custom_keypoint = xytoe[x][y];
-			}
-
-			if (is_master) cluster.SendCommand(gtp_str);
-
-			SendGTP("= \n\n");
 		}
 		else if (FindStr(gtp_str, "time_left"))
 		{
@@ -263,27 +219,15 @@ int CallGTP(){
 
 			SendGTP("= \n\n");
 		}
-		// temp
-		else if (FindStr(gtp_str, "genmove") || FindStr(gtp_str, "gm ")) {
+		else if (FindStr(gtp_str, "genmove")) {
 			// 次の手を考えて送信する.
 			// Think and send the next move.
 			// "=genmove b", "=genmove white", ...
 
 			auto t1 = std::chrono::system_clock::now();
-			b.SelectKeypoint();
-			cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
-			cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 			cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;
-			if(pl != b.my){
-				// Insert pass if the turn is different.
-				b.PlayLegal(PASS);
-				sgf.AddMove(PASS);
-				//tree.UpdateRootNode(b);
-				--b.pass_cnt[b.her];
-			}
-
 			is_playing = true;
 			int next_move;
 			tree.stop_think = false;
@@ -323,6 +267,7 @@ int CallGTP(){
 				// b. 最善手を求める.
 				//    Search for the best move.
 				next_move = tree.SearchTree(b, 0.0, win_rate, true, false);
+
 				if(	is_master && next_move != PASS 	&&
 					b.prev_move[b.her] != PASS		&&
 					(tree.left_time > 25 || tree.byoyomi != 0))
@@ -330,12 +275,9 @@ int CallGTP(){
 					// 合議の結果を反映する
 					// Reflect the result of consultation.
 					next_move = cluster.Consult(tree, tree.log_path);
-					cerr << "WARNING: cluster.Consult: " << next_move << "\n";
 				}
 			}
 
-			// temp for score!!! need them back when score is duplicated
-			/*
 			if(b.IsMimicGo()){ next_move = EBVCNT/2; }
 			else if(win_rate < 0.1){
 				// 1000回プレイアウトして本当に負けているか確認する
@@ -349,7 +291,6 @@ int CallGTP(){
 				}
 				if((double)win_cnt / 1000 < 0.25) next_move = PASS;
 			}
-			*/
 
 			// c. 局面を進める. Play the move.
 			b.PlayLegal(next_move);
@@ -434,19 +375,23 @@ int CallGTP(){
 				next_move = xytoe[x][y];
 			}
 
-			// b. 異なる手番の石を配置する前にパスを挿入する
-			//    Insert pass before placing a opponent's stone.
-			if(	(b.my == 0 && FindStr(gtp_str, "play b", "play B")) ||
-				(b.my == 1 && FindStr(gtp_str, "play w", "play W"))	)
+			// b. 置石を配置する前に白のパスを挿入する
+			//    Insert white pass before placing a stone
+			if(	b.my == 0 && FindStr(gtp_str, "play b", "play B"))
 			{
 				b.PlayLegal(PASS);
 				sgf.AddMove(PASS);
-				--b.pass_cnt[b.her];
+				--b.pass_cnt[0];
+
+				if(tree.komi != 0.5){
+					tree.komi = 0.5;
+					cerr << "set komi=0.5.\n";
+				}
 			}
 
 			// c. 局面を進める. Play the move.
 			b.PlayLegal(next_move);
-			//tree.UpdateRootNode(b);
+			tree.UpdateRootNode(b);
 
 			// d. GTPコマンドを送信. Send GTP response.
 			SendGTP("= \n\n");
@@ -493,15 +438,6 @@ int CallGTP(){
 			b.Clear();
 			tree.Clear();
 			sgf.Clear();
-
-			// temp
-			if (resume_sgf_path != "") {
-				SgfData sgf_read;
-				sgf_read.ImportData(resume_sgf_path);
-				sgf_read.GenerateBoard(b, sgf_read.move_cnt);
-				sgf = sgf_read;
-			}
-
 			if(is_master) cluster.SendCommand("clear_board");
 
 			// b. 局面を一手前まで進める.
@@ -533,22 +469,6 @@ int CallGTP(){
 			}
 
 			// d. GTPコマンドを送信. Send GTP response.
-			SendGTP("= \n\n");
-		}
-		else if (FindStr(gtp_str, "restore")) {
-			b.Clear();
-			tree.Clear();
-			sgf.Clear();
-
-			// temp
-			if (resume_sgf_path != "") {
-				SgfData sgf_read;
-				sgf_read.ImportData(resume_sgf_path);
-				sgf_read.GenerateBoard(b, sgf_read.move_cnt);
-				tree.UpdateRootNode(b);
-				sgf = sgf_read;
-			}
-
 			SendGTP("= \n\n");
 		}
 		else if(FindStr(gtp_str, "final_score")) {
@@ -643,111 +563,6 @@ int CallGTP(){
 			SendGTP("= %s\n\n", ss.str().c_str());
 
 		}
-		else if (FindStr(gtp_str, "isseki")) {
-
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			string str_x = split_list[1].substr(0, 1);
-			string str_y = split_list[1].substr(1);
-
-			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
-
-			int x = int(x_list.find(str_x)) % 19 + 1;
-			int y = stoi(str_y);
-
-			int check = xytoe[x][y];
-			if (b.IsSeki(check))
-				SendGTP("= yes\n");
-			else
-				SendGTP("= no\n");
-
-			SendGTP("= \n\n");
-		}
-		else if (FindStr(gtp_str, "iseyeshape")) {
-
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			string str_x = split_list[1].substr(0, 1);
-			string str_y = split_list[1].substr(1);
-
-			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
-
-			int x = int(x_list.find(str_x)) % 19 + 1;
-			int y = stoi(str_y);
-
-			int check = xytoe[x][y];
-			if (b.IsEyeShape(0, check) || b.IsEyeShape(1, check))
-				SendGTP("= yes\n");
-			else
-				SendGTP("= no\n");
-
-			SendGTP("= \n\n");
-		}
-		else if (FindStr(gtp_str, "isselfatarinakade")) {
-
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			string str_x = split_list[1].substr(0, 1);
-			string str_y = split_list[1].substr(1);
-
-			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
-
-			int x = int(x_list.find(str_x)) % 19 + 1;
-			int y = stoi(str_y);
-
-			int check = xytoe[x][y];
-			if (b.IsSelfAtariNakade(check))
-				SendGTP("= yes\n");
-			else
-				SendGTP("= no\n");
-
-			SendGTP("= \n\n");
-		}
-		else if (FindStr(gtp_str, "isko")) {
-
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			string str_x = split_list[1].substr(0, 1);
-			string str_y = split_list[1].substr(1);
-
-			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
-
-			int x = int(x_list.find(str_x)) % 19 + 1;
-			int y = stoi(str_y);
-
-			int check = xytoe[x][y];
-			if (b.IsKo(0, check) || b.IsKo(1, check))
-				SendGTP("= yes\n");
-			else
-				SendGTP("= no\n");
-
-			SendGTP("= \n\n");
-		}
-		else if (FindStr(gtp_str, "islegal")) {
-
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			string str_x = split_list[1].substr(0, 1);
-			string str_y = split_list[1].substr(1);
-
-			string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
-
-			int x = int(x_list.find(str_x)) % 19 + 1;
-			int y = stoi(str_y);
-
-			int check = xytoe[x][y];
-			if (b.IsLegal(0, check) && b.IsLegal(1, check))
-				SendGTP("= yes\n");
-			else
-				SendGTP("= no\n");
-
-			SendGTP("= \n\n");
-		}
 		else if (FindStr(gtp_str, "chid_info")) {
 
 			tree.SearchTree(b, 0.0, win_rate, false, false);
@@ -786,38 +601,10 @@ int CallGTP(){
 				tree.main_time = (double)stoi(split_list[2]);
 				tree.left_time = tree.main_time;
 				tree.byoyomi = (double)stoi(split_list[3]);
-				cfg_byoyomi = (double)stoi(split_list[3]);
 			}
 			else{
 				tree.main_time = (double)stoi(split_list[2]);
 				tree.left_time = tree.main_time;
-			}
-
-			SendGTP("= \n\n");
-		}
-		// temp
-		else if (FindStr(gtp_str, "time_settings") || FindStr(gtp_str, "ts "))
-		{
-			// 時間を設定する
-			// Set main and byoyomi time.
-			// "=kgs-time_settings byoyomi 30 60 3", ...
-			SplitString(gtp_str, " ", split_list);
-			if (split_list[0] == "=") split_list.erase(split_list.begin());
-
-			if (split_list.size() >= 4)
-			{
-				tree.main_time = (double)stoi(split_list[1]);
-				tree.left_time = tree.main_time;
-				tree.byoyomi = (double)stoi(split_list[2]);
-				int perstone = stoi(split_list[3]);
-				if (perstone > 0) 
-					tree.byoyomi /= perstone;
-				cfg_byoyomi = tree.byoyomi;
-			}
-			else if (split_list.size() == 2)
-			{
-				tree.byoyomi = (double)stoi(split_list[1]);
-				cfg_byoyomi = tree.byoyomi;
 			}
 
 			SendGTP("= \n\n");

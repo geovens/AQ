@@ -1,5 +1,4 @@
 #include "playout.h"
-#include <iostream>
 
 #define forEach4Nbr(v_origin,v_nbr,block)		\
 	int v_nbr;									\
@@ -100,36 +99,16 @@ int Win(Board& b, int pl, double komi) {
 			}
 		}
 	}
+
 	for (auto i: rtoe) {
 		int stone_color = b.color[i] - 2;
-		if (!visited[i] && (stone_color >= 0))
-		{
+		if (!visited[i] && (stone_color >= 0)) {
 			visited[i] = true;
-			//score[stone_color] += i == keypoint ? 1000 : 1;
-			if (keypoint > 0)
-			{
-				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
-				//score[stone_color] += 10 / (dist + 1) - 1;
-				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
-				if (dist < 5) score[stone_color]++;
-			}
-			else
-				score[stone_color]++;
-			forEach4Nbr(i, v_nbr, 
-			{
-				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
-				{
+			++score[stone_color];
+			forEach4Nbr(i, v_nbr, {
+				if (!visited[v_nbr] && b.color[v_nbr] == 0) {
 					visited[v_nbr] = true;
-					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
-					if (keypoint > 0)
-					{
-						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
-						//score[stone_color] += 10 / (dist + 1) - 1;
-						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
-						if (dist < 5) score[stone_color]++;
-					}
-					else
-						score[stone_color]++;
+					++score[stone_color];
 				}
 			});
 		}
@@ -253,40 +232,18 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 		}
 	}
 
-	for (auto i: rtoe) 
-	{
+	for (auto i: rtoe) {
 		int stone_color = b.color[i] - 2;
-		if (!visited[i] && stone_color >= 0) 
-		{
+		if (!visited[i] && stone_color >= 0) {
 			visited[i] = true;
-			//score[stone_color] += i == keypoint ? 1000 : 1;
-			if (keypoint > 0)
-			{
-				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
-				//score[stone_color] += 10 / (dist + 1) - 1;
-				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
-				if (dist < 5) score[stone_color]++;
-			}
-			else
-				score[stone_color]++;
+			++score[stone_color];
 			++stat.owner[stone_color][i];
 			++stat.stone[stone_color][i];
 			is_stone[stone_color][i] = true;
-			forEach4Nbr(i, v_nbr, 
-			{
-				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
-				{
+			forEach4Nbr(i, v_nbr, {
+				if (!visited[v_nbr] && b.color[v_nbr] == 0) {
 					visited[v_nbr] = true;
-					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
-					if (keypoint > 0)
-					{
-						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
-						//score[stone_color] += 10 / (dist + 1) - 1;
-						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
-						if (dist < 5) score[stone_color]++;
-					}
-					else
-						score[stone_color]++;
+					++score[stone_color];
 					++stat.owner[stone_color][v_nbr];
 				}
 			});
@@ -409,37 +366,15 @@ double Score(Board& b, double komi) {
 		}
 	}
 
-	for (auto i: rtoe) 
-	{
+	for (auto i: rtoe) {
 		int stone_color = b.color[i] - 2;
-		if (!visited[i] && stone_color >= 0) 
-		{
+		if (!visited[i] && stone_color >= 0) {
 			visited[i] = true;
-			//score[stone_color] += i == keypoint ? 1000 : 1;
-			if (keypoint > 0)
-			{
-				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
-				//score[stone_color] += 10 / (dist + 1) - 1;
-				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
-				if (dist < 5) score[stone_color]++;
-			}
-			else
-				score[stone_color]++;
-			forEach4Nbr(i, v_nbr, 
-			{
-				if (!visited[v_nbr] && b.color[v_nbr] == 0) 
-				{
+			++score[stone_color];
+			forEach4Nbr(i, v_nbr, {
+				if (!visited[v_nbr] && b.color[v_nbr] == 0) {
 					visited[v_nbr] = true;
-					//score[stone_color] += v_nbr == keypoint ? 1000 : 1;
-					if (keypoint > 0)
-					{
-						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
-						//score[stone_color] += 10 / (dist + 1) - 1;
-						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
-						if (dist < 5) score[stone_color]++;
-					}
-					else
-						score[stone_color]++;
+					++score[stone_color];
 				}
 			});
 		}
@@ -460,7 +395,6 @@ double Score(Board& b, double komi) {
  *
  *  Play until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
- *  Not called at all.
  */
 int Playout(Board& b, double komi) {
 
@@ -494,7 +428,6 @@ int Playout(Board& b, double komi) {
  *
  *  Play with random moves until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
- *  Not called at all.
  */
 int PlayoutRandom(Board& b, double komi) {
 
@@ -511,10 +444,8 @@ int PlayoutRandom(Board& b, double komi) {
 	}
 
 	// Return the result.
-	//return Win(b, pl, komi);
+	return Win(b, pl, komi);
 
-	double score = Score(b, komi);
-	return -score / 50;
 }
 
 /**
@@ -524,7 +455,7 @@ int PlayoutRandom(Board& b, double komi) {
  *  Play with 'Last Good Reply' until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
  */
-double PlayoutLGR(Board& b, LGR& lgr, double komi)
+int PlayoutLGR(Board& b, LGR& lgr, double komi)
 {
 
 	int next_move;
@@ -640,8 +571,7 @@ double PlayoutLGR(Board& b, LGR& lgr, double komi)
  *  white wins: 0, black wins: 1 or -1.
  *  Updates game_cnt, stone_cnt and owner_cnt at the same time.
  */
-// temp: int -> double
-double PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
+int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
 {
 
 	int next_move;
@@ -729,7 +659,6 @@ double PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
 	int win = Win(b, pl, stat, komi);
 	int win_pl = int(win != 0);
 	int lose_pl = int(win == 0);
-	double score = Score(b, komi);
 
 	for(auto& i:lgr_rollout_add[win_pl]){
 		lgr.rollout[win_pl][i[0]][i[1]] = i[2];
@@ -743,9 +672,8 @@ double PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi)
 
 	// èIã«ê}ÇÃèüîsÇï‘Ç∑
 	// Return the result.
-	// temp
-	//return win;
-	return -score / 50;
+	return win;
+
 }
 
 #undef forEach4Nbr

@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <assert.h>
 #include <unordered_set>
-#include <iostream>
 
 #include "board.h"
 
@@ -114,10 +113,6 @@ Board& Board::operator=(const Board& other) {
 	std::memcpy(sum_prob_rank, other.sum_prob_rank, sizeof(sum_prob_rank));
 	std::memcpy(pass_cnt, other.pass_cnt, sizeof(pass_cnt));
 
-	// AQ-PS
-	ko_penalty_my = other.ko_penalty_my;
-	searchdepth = other.searchdepth;
-
 	return *this;
 
 }
@@ -134,9 +129,6 @@ void Board::Clear() {
 	my = 1;
 	her = 0;
 	empty_cnt = 0;
-
-	//ko_penalty = 0;
-
 	FillArray(sum_prob_rank, 0.0);
 	FillArray(is_placed, false);
 	FillArray(is_ptn_updated, false);
@@ -228,32 +220,6 @@ bool Board::IsLegal(int pl, int v) const{
 
 	return ptn[v].IsLegal(pl);
 
-}
-
-bool Board::IsKo(int pl, int v) const {
-
-	assert(v <= PASS);
-
-	if (v == PASS) return false;
-
-	if (!ptn[v].IsEnclosed(pl)) return false;
-	if (color[v] != 0) return false;
-
-	bool isko = false;
-	for (int i = 0; i < 4; ++i) {
-		int v_nbr = v + VSHIFT[i];	// neighboring position
-
-		// when white or black stone
-		if (color[v_nbr] > 1) {
-			if (ptn[v_nbr].IsAlmostEnclosed(1 - pl) == true)
-			{
-				isko = true;
-				break;
-			}
-		}
-	}
-
-	return isko;
 }
 
 
@@ -828,15 +794,12 @@ inline bool Board::IsSelfAtari(int pl, int v) const{
  *  Update the board with the move on position v.
  *  It is necessary to confirm in advance whether the move is legal.
  */
-void Board::PlayLegal(int v, bool* ko_taken) {
+void Board::PlayLegal(int v) {
 
 	assert(v <= PASS);
 	assert(v == PASS || color[v] == 0);
 	assert(v != ko);
 
-	// temp
-	searchdepth++;
-	
 	// 1. 棋譜情報を更新
 	//    Update history.
 	int prev_empty_cnt = empty_cnt;
@@ -949,8 +912,6 @@ void Board::PlayLegal(int v, bool* ko_taken) {
 	//    Update Ko.
 	if (is_in_eye && prev_empty_cnt == empty_cnt) {
 		ko = empty[empty_cnt - 1];
-		if (ko_taken != NULL)
-			*ko_taken = true;
 	}
 
 	// 9. 着手連のアタリor２呼吸点情報を更新
@@ -1265,7 +1226,6 @@ int Board::SelectRandomMove() {
 			 IsLegal(my, next_move) 	&&
 			 !IsSeki(next_move)			) break;
 
-
 		++i;
 		if(i == empty_cnt) i = 0;
 
@@ -1334,33 +1294,9 @@ int Board::SelectMove() {
 
 		// c. 眼を埋めずセキでもない合法手か
 		//    Break if next_move is legal and dosen't fill an eye or Seki.
-		// temp!!!
-		
 		if (IsLegal(my, next_move) 		&&
 			!IsEyeShape(my, next_move) 	&&
 			!IsSeki(next_move)			) break;
-		
-		// the following block works horribly. don't use.
-		/*
-		if (cfg_avoid_ko > 0)
-		{
-			int dist;
-			if (keypoint > 0)
-				dist = std::max(abs(etox[next_move] - etox[keypoint]), abs(etoy[next_move] - etoy[keypoint]));
-			else
-				dist = 100;
-			if (IsLegal(my, next_move) &&
-				!IsEyeShape(my, next_move) &&
-				!IsSeki(next_move) &&
-				!(IsKo(her, next_move) && my == ko_penalty_my && dist < 5)) break;
-		}
-		else
-		{
-			if (IsLegal(my, next_move) &&
-				!IsEyeShape(my, next_move) &&
-				!IsSeki(next_move)) break;
-		}
-		*/
 
 		// d. 合法手でないとき、next_moveの確率を除いて再計算する
 		//    Recalculate after subtracting probability of next_move.
@@ -1397,50 +1333,6 @@ bool Board::IsMimicGo(){
 	}
 
 	return true;
-
-}
-
-void Board::SelectKeypoint() {
-
-	if (cfg_custom_keypoint > 0)
-		keypoint = cfg_custom_keypoint;
-	else if (cfg_custom_keypoint == -1)
-		keypoint = -1;
-	else
-	{
-		int sum_x = 0, sum_y = 0, cnt = 0;
-		for (int j = 0; j < BVCNT; ++j)
-		{
-			int v = rtoe[j];
-			if (is_placed[0][v] || is_placed[1][v])
-			{
-				sum_x += etox[v];
-				sum_y += etoy[v];
-				cnt++;
-			}
-			if (cnt > 0)
-			{
-				int ave_x = (int)((double)sum_x / cnt + 0.5);
-				int ave_y = (int)((double)sum_y / cnt + 0.5);
-				if (ave_x < 6) ave_x--;
-				if (ave_x < 4) ave_x--;
-				if (ave_x < 1) ave_x = 1;
-				if (ave_x > 14) ave_x++;
-				if (ave_x > 16) ave_x++;
-				if (ave_x > 19) ave_x = 19;
-				if (ave_y < 6) ave_y--;
-				if (ave_y < 4) ave_y--;
-				if (ave_y < 1) ave_y = 1;
-				if (ave_y > 14) ave_y++;
-				if (ave_y > 16) ave_y++;
-				if (ave_y > 19) ave_y = 19;
-				keypoint = xytoe[ave_x][ave_y];
-				//cerr << ave_x << " " << ave_y << " " << keypoint << " " << CoordinateString(keypoint) << "\n";
-			}
-			else
-				keypoint = 0;
-		}
-	}
 
 }
 
