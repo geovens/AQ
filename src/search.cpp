@@ -358,15 +358,16 @@ int Tree::CreateNode(Board& b) {
 		for(int i=0;i<b.empty_cnt;++i) {
 			int v = b.empty[i];
 			// temp
-			/*
+			
 			if(	!b.IsLegal(b.my,v)	||
 				b.IsEyeShape(b.my,v)||
 				b.IsSeki(v)) 	continue;
-			*/
+			/*
 			if (!b.IsLegal(b.my, v) ||
 				b.IsEyeShape(b.my, v) ||
 				b.IsSeki(v) ||
 				(b.IsKo(b.her, v) && b.my == b.ko_penalty_my)) continue;
+			*/
 			prob_list.push_back(std::make_pair(pn->prob[v].load() * inv_sum, v));
 		}
 		std::sort(prob_list.begin(), prob_list.end(), std::greater<std::pair<double,int>>());
@@ -620,7 +621,7 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	// 1. action valueが一番高い手を選ぶ
 	//    Choose the move with the highest action value.
 	int max_idx = 0;
-	double max_avalue = -128;
+	double max_avalue = -10000;
 
 	double pn_rollout_rate = (double)pn->rollout_win/((double)pn->rollout_cnt + 0.01);
 	double pn_value_rate = (double)pn->value_win/((double)pn->value_cnt + 0.01);
@@ -774,28 +775,8 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 	}
 
 	// 6. 局面を進める. Play next_mvoe.
-	// temp
-	bool match; int testc = 0;
-	if (b.IsKo(b.her, pc->move) && b.my == b.ko_penalty_my)
-	{
-		match = true;
-		testc = b.her;
-	}
-	else
-	{
-		match = false;
-		
-	}
 	bool ko_taken = false;
-	b.PlayLegal(next_move, &ko_taken);
-	if (ko_taken)
-	{
-		if (match && rand() % 50 == 0)
-		{
-			PrintBoard(b, next_move);
-			cerr << "WARNING: ko condition does not match? testc=" << testc << "\n";
-		}
-	}
+	b.PlayLegal(next_move);
 
 	// 7. ノードを展開する
 	//    Expand the next node.
@@ -867,7 +848,6 @@ double Tree::SearchBranch(Board& b, int node_idx, float& value_result,
 			// seams like rollout_result is positive when 'I' win?
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, stat_, komi) + win_bias); // <- original!!!
 			rollout_result = -PlayoutLGR(b, lgr_, stat_, komi) * win_bias; // <- temp test!
-			//rollout_result -= b.ko_penalty / 100 * (b.ko_penalty_my == b.my ? 1 : 0);
 			//rollout_result = -PlayoutRandom(b, komi) * win_bias;
 			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
 		}
@@ -953,12 +933,16 @@ void SortChildrenByRollout(Node* pn, std::vector<Child*>& child_list) {
 
 	std::vector<std::pair<int, int>> game_cnt_list;
 	for (int i = 0; i<pn->child_cnt; ++i) {
-		double sco = (pn->children[i].rollout_win / std::max(1, (int)pn->children[i].rollout_cnt) + 1) / 2;
+		double sco = (pn->children[i].rollout_win / std::max(1, (int)pn->children[i].rollout_cnt)) / 2;
 		double ratio = (double)pn->children[i].rollout_cnt / (pn->total_game_cnt + 1);
 		if (ratio < 0.05)
 			sco -= (0.2236 - sqrt(ratio));
+		if (pn->children[i].rollout_cnt < 2)
+			sco -= 10;
+		if (pn->children[i].move == PASS) 
+			sco -= 10;
 		int game_cnt = (int)(sco * 10000);
-		if (pn->children[i].move == PASS) game_cnt = 0;
+
 		game_cnt_list.push_back(std::make_pair(game_cnt, i));
 	}
 	std::sort(game_cnt_list.begin(), game_cnt_list.end(), std::greater<std::pair<int, int>>());
@@ -1017,6 +1001,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		b.ko_penalty_my = b.my;
 	else
 		b.ko_penalty_my = -1;
+	b.ko_penalty = 0;
 	b.searchdepth = 0;
 
 	// 1. root nodeを更新. Update root node.
@@ -1702,12 +1687,14 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 
 	ost << "|move|count  |value|score |prob |depth| best sequence" << endl;
 
+	// temp
 	for(int i=0;i<std::min((int)pn->child_cnt, 10);++i) {
+	//for (int i = 0; i<(int)pn->child_cnt; ++i) {
 
 		Child* pc = rc[i];
 		int game_cnt = std::max((int)pc->rollout_cnt, (int)pc->value_cnt);
 
-		if (game_cnt == 0) break;
+		//if (game_cnt == 0) break;
 
 		// temp for score
 		//double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;

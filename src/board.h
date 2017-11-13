@@ -356,11 +356,6 @@ public:
 	// çsÇ≤Ç∆ÇÃämó¶ÇÃè¨åv. Sum of probability for each rank.
 	double sum_prob_rank[2][BSIZE];
 
-	// AQ-PS
-	// score penalty if a ko is played. used to discorrage kos.
-	//double ko_penalty;
-	int ko_penalty_my;
-	int searchdepth;
 
 	Board();
 	Board(const Board& other);
@@ -380,6 +375,12 @@ public:
 	int SelectRandomMove();
 	int SelectMove();
 	bool IsMimicGo();
+
+	// AQ-PS
+	// score penalty if a ko is played. used to discorrage kos.
+	double ko_penalty;
+	int ko_penalty_my;
+	int searchdepth;
 
 	// AQ-PS
 	void SelectKeypoint();

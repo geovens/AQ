@@ -116,6 +116,7 @@ Board& Board::operator=(const Board& other) {
 
 	// AQ-PS
 	ko_penalty_my = other.ko_penalty_my;
+	ko_penalty = other.ko_penalty;
 	searchdepth = other.searchdepth;
 
 	return *this;
@@ -949,8 +950,20 @@ void Board::PlayLegal(int v, bool* ko_taken) {
 	//    Update Ko.
 	if (is_in_eye && prev_empty_cnt == empty_cnt) {
 		ko = empty[empty_cnt - 1];
-		if (ko_taken != NULL)
-			*ko_taken = true;
+
+		int dist;
+		if (keypoint > 0)
+			dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
+		else
+			dist = 100;
+		if (my == ko_penalty_my && dist < 5)
+		{
+			if (my == 1)
+				ko_penalty -= 0;
+			else
+				ko_penalty += 0;
+			//if (ko_penalty == 0) std::cerr << "ERROR: ko_penalty==0\n";
+		}
 	}
 
 	// 9. 着手連のアタリor２呼吸点情報を更新

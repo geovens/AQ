@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
 	//DoSomething();
 
 	std::cerr << "finished.\n";
+	getchar();
 	return 0;
 
 }

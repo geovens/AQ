@@ -450,6 +450,9 @@ double Score(Board& b, double komi) {
 	int pass_corr = b.pass_cnt[0] - b.pass_cnt[1] + int((b.move_cnt%2)!=0);
 	double abs_score = score[1] - score[0] - komi - pass_corr * int(japanese_rule);
 
+	// AQ-PS: penalty ko
+	abs_score += b.ko_penalty;
+
 	return abs_score;
 
 }
