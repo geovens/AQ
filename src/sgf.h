@@ -51,6 +51,7 @@ public:
 	int ConvertToVertex(std::string aa);
 	bool GenerateBoard(Board& b, int move_idx);
 
+	std::string filepath;
 };
 
 int ImportSGFList(std::string folder, std::vector<SgfData>& sgf_list);

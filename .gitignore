@@ -1,0 +1,15 @@
+vs/build
+vs/bin
+vs/tensorflow
+test_problems
+release
+
+*.pdb
+*.ipdb
+*.iobj
+*.exp
+*.sdf
+*.suo
+*.opensdf
+*.opendb
+*.db

@@ -382,5 +382,8 @@ public:
 	int SelectMove();
 	bool IsMimicGo();
 
+	// AQ-PS
+	int searchdepth;
+	void SelectKeypoint();
 };
 

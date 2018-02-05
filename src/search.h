@@ -15,7 +15,7 @@
 #include "node.h"
 
 // Flag to use only CPU.
-//#define CPU_ONLY
+#define CPU_ONLY
 //#define OnlineMatch
 
 /**************************************************************

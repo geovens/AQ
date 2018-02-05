@@ -123,10 +123,10 @@ int Win(Board& b, int pl, double komi=KOMI);
 int Win(Board& b, int pl, Statistics& stat, double komi=KOMI);
 
 double Score(Board& b, double komi=KOMI);
-int Playout(Board& b, double komi=KOMI);
-int PlayoutRandom(Board&b, double komi=KOMI);
+double Playout(Board& b, double komi=KOMI);
+double PlayoutRandom(Board&b, double komi=KOMI);
 
-int PlayoutLGR(Board& b, LGR& lgr, double komi=KOMI);
-int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi=KOMI);
+double PlayoutLGR(Board& b, LGR& lgr, double komi=KOMI);
+double PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi=KOMI);
 
 extern bool japanese_rule;

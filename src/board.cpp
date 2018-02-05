@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <unordered_set>
+#include <iostream>
 
 #include "board.h"
 
@@ -124,6 +125,8 @@ Board& Board::operator=(const Board& other) {
 	copy(other.updated_ptns.begin(), other.updated_ptns.end(), back_inserter(updated_ptns));
 	std::memcpy(sum_prob_rank, other.sum_prob_rank, sizeof(sum_prob_rank));
 	std::memcpy(pass_cnt, other.pass_cnt, sizeof(pass_cnt));
+
+	searchdepth = other.searchdepth;
 
 	return *this;
 
@@ -994,6 +997,8 @@ void Board::PlayLegal(int v) {
 	assert(v == PASS || color[v] == 0);
 	assert(v != ko);
 
+	searchdepth++;
+
 	// 1. Šû•ˆî•ñ‚ðXV
 	//    Update history.
 	int prev_empty_cnt = empty_cnt;
@@ -1565,6 +1570,51 @@ bool Board::IsMimicGo(){
 	}
 
 	return true;
+
+}
+
+void Board::SelectKeypoint() {
+
+	if (cfg_custom_keypoint > 0)
+		keypoint = cfg_custom_keypoint;
+	else if (cfg_custom_keypoint == -1)
+		keypoint = -1;
+	else
+	{
+		int sum_x = 0, sum_y = 0, cnt = 0;
+		for (int j = 0; j < BVCNT; ++j)
+		{
+			int v = rtoe[j];
+			if (color[v] == 2 || color[v] == 3)
+			{
+				sum_x += etox[v];
+				sum_y += etoy[v];
+				cnt++;
+			}
+		}
+		if (cnt > 0)
+		{
+			int ave_x = (int)((double)sum_x / cnt + 0.5);
+			int ave_y = (int)((double)sum_y / cnt + 0.5);
+			if (ave_x < 6) ave_x--;
+			if (ave_x < 4) ave_x--;
+			if (ave_x < 1) ave_x = 1;
+			if (ave_x > 14) ave_x++;
+			if (ave_x > 16) ave_x++;
+			if (ave_x > 19) ave_x = 19;
+			if (ave_y < 6) ave_y--;
+			if (ave_y < 4) ave_y--;
+			if (ave_y < 1) ave_y = 1;
+			if (ave_y > 14) ave_y++;
+			if (ave_y > 16) ave_y++;
+			if (ave_y > 19) ave_y = 19;
+			keypoint = xytoe[ave_x][ave_y];
+			std::cerr << "keypoint:" << ave_x << " " << ave_y << " " << keypoint << " " << "\n";
+
+		}
+		else
+			keypoint = 0;
+	}
 
 }
 

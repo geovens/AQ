@@ -130,9 +130,9 @@ void Tree::SetGPU(std::string sl_path, std::string vl_path, std::vector<int>& gp
 void Tree::Clear(){
 
 #ifdef CPU_ONLY
-	thread_cnt = 2;
+	thread_cnt = cfg_thread_cnt;
 	gpu_cnt = 1;
-	expand_cnt = 64;
+	expand_cnt = 24;
 #else
 	thread_cnt = (cfg_thread_cnt > cfg_gpu_cnt) ? cfg_thread_cnt : cfg_gpu_cnt + 1;
 	gpu_cnt = cfg_gpu_cnt;
@@ -145,8 +145,8 @@ void Tree::Clear(){
 	sym_idx = cfg_sym_idx;
 
 	vloss_cnt = 3;
-	lambda = 0.7;
-	cp = 3.0;
+	lambda = 0.0;
+	cp = 2.0;
 	policy_temp = 0.7;
 
 	Tree::InitBoard();
@@ -218,6 +218,7 @@ void Tree::AddPolicyQue(int node_idx, Board& b){
 	PolicyEntry pe;
 	pe.node_idx = node_idx;
 	pe.ft.Set(b, PASS);
+	pe.searchdepth = b.searchdepth;
 	{
 		std::lock_guard<std::mutex> lock(mtx_pque);
 		policy_que.push_back(pe);
@@ -628,6 +629,7 @@ void Tree::DeleteNodeIndex(int node_idx){
 int Tree::UpdateRootNode(Board&b){
 
 	move_cnt = b.move_cnt;
+	b.searchdepth = 0;
 	int node_idx = CreateNode(b);
 
 	if(root_node_idx != node_idx) DeleteNodeIndex(node_idx);
@@ -659,7 +661,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 	// 1. action valueが一番高い手を選ぶ
 	//    Choose the move with the highest action value.
 	int max_idx = 0;
-	double max_avalue = -128;
+	double max_avalue = -10000;
 
 	double pn_rollout_rate = (pn->rollout_cnt == 0)? 0.0 : (double)pn->rollout_win/((double)pn->rollout_cnt);
 	double pn_value_rate = (pn->value_cnt == 0)? 0.0 : (double)pn->value_win/((double)pn->value_cnt);
@@ -693,7 +695,8 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		// c. action valueを求める
 		//    Calculate action value.
 		game_cnt = use_rollout? (double)pc->rollout_cnt : (double)pc->value_cnt;
-		action_value = rate + cp * pc->prob * pn_root_game / (1 + game_cnt);
+		//action_value = rate + cp * pc->prob * pn_root_game / (1 + game_cnt);
+		action_value = rate + cp * sqrt(pc->prob) * pn_root_game / (1 + game_cnt);
 
 		// d. max_idxを更新. Update max_idx.
 		if (action_value > max_avalue) {
@@ -812,6 +815,8 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 	{
 		// a-1. 局面が未評価であればキューに追加する
 		//      Add into the queue if the board is not evaluated.
+		// AQ-PS: value network is removed
+		/*
 		value_result = 0;
 		if(pc->is_value_eval){
 			value_result = (double)pc->value;
@@ -819,11 +824,13 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		else{
 			AddValueQue(serch_route, b);
 		}
+		*/
 
 		if(use_rollout){
 			// b. プレイアウトし、結果を[-1.0, 1.0]に規格化
 			//    Roll out and normalize the result to [-1.0, 1.0].
-			rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
+			//rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
+			rollout_result = -PlayoutLGR(b, lgr_, komi) * win_bias;
 		}
 	}
 	else{
@@ -892,6 +899,32 @@ void Tree::SortChildren(Node* pn, std::vector<Child*>& child_list){
 
 }
 
+void SortChildrenByRollout(Node* pn, std::vector<Child*>& child_list) {
+
+	std::vector<std::pair<int, int>> game_cnt_list;
+	for (int i = 0; i<pn->child_cnt; ++i) {
+		double sco = (pn->children[i].rollout_win / std::max(1, (int)pn->children[i].rollout_cnt)) / 2;
+		double ratio = (double)pn->children[i].rollout_cnt / (pn->total_game_cnt + 1);
+		if (ratio < 0.05)
+			sco -= (0.2236 - sqrt(ratio));
+		if (pn->children[i].rollout_cnt < 2)
+			sco -= 10;
+		if (pn->children[i].move == PASS)
+			sco -= 10;
+		int game_cnt = (int)(sco * 10000);
+
+		game_cnt_list.push_back(std::make_pair(game_cnt, i));
+	}
+	std::sort(game_cnt_list.begin(), game_cnt_list.end(), std::greater<std::pair<int, int>>());
+
+	child_list.clear();
+	for (int i = 0; i<pn->child_cnt; ++i) {
+		Child* pc = &pn->children[game_cnt_list[i].second];
+		child_list.push_back(pc);
+	}
+
+}
+
 double Tree::BranchRate(Child* pc){
 
 	double winning_rate;
@@ -934,6 +967,7 @@ std::string CoordinateString(int v){
 int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 						bool is_errout, bool is_ponder)
 {
+	b.searchdepth = 0;
 
 	// 1. root nodeを更新. Update root node.
 	if(b.move_cnt == 0) Tree::InitBoard();
@@ -980,8 +1014,8 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 	// 4. lambdaを進行度に合わせて調整 (0.8 -> 0.4)
 	//    Adjust lambda to progress.
-	lambda = 0.8 - 0.4 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 160) / (360 - 160)));
-	cp = 0.1 + 2.9 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
+	//lambda = 0.8 - 0.4 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 160) / (360 - 160)));
+	//cp = 0.1 + 2.9 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
 	bool use_rollout = (lambda != 1.0);
 
 	// 5. root nodeが未評価のとき、確率分布を評価する
@@ -993,7 +1027,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 		std::vector<FeedTensor> ft_list;
 		ft_list.push_back(ft);
 
-		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
+		PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx, 1);
 		UpdateNodeProb(root_node_idx, prob_list[0]);
 	}
 
@@ -1048,7 +1082,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 				pn->total_game_cnt > 10000 &&
 				(win_rate < 0.05 || win_rate > 0.95);
 
-		if(stand_out || enough_game || almost_win)
+		if(false && (stand_out || enough_game || almost_win))
 		{
 			// Skip search.
 			if(is_errout){
@@ -1115,7 +1149,8 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 			// c. thread_cnt個のスレッドで並列探索を行う
 			//    Search in parallel with thread_cnt threads.
 			ParallelSearch(thinking_time, b, is_ponder);
-			SortChildren(pn, rc);
+			//SortChildren(pn, rc);
+			SortChildrenByRollout(pn, rc);
 
 			// d. 1位の手と2位の手の試行回数が1.5倍以内のとき、思考時間を延長する
 			//    Extend thinking time when the trial number of first move
@@ -1145,7 +1180,8 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 			stop_think = false;
 
 			// e. 盤面の占有率を更新. Update statistics of the board.
-			if(pn->total_game_cnt - prev_game_cnt > 5000) stat -= prev_stat;
+			//if(pn->total_game_cnt - prev_game_cnt > 5000) stat -= prev_stat;
+			if (pn->total_game_cnt - prev_game_cnt > 500) stat -= prev_stat;
 
 			// f. 探索情報を出力する
 			//    Output search information.
@@ -1409,7 +1445,8 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
 		// 2. policy_queを処理. Process policy_que.
 #ifdef CPU_ONLY
-		if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
+		//if(policy_que_cnt > 0 && mt_double(mt_32) < 0.25){
+		if (policy_que_cnt > 0) {
 #else
 		if (policy_que_cnt > 0) {
 #endif //CPU_ONLY
@@ -1438,7 +1475,13 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 				}
 
 				// c. Evaluate policy.
-				PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx);
+				if (pque_th[0].searchdepth < 1)
+				{
+					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 1);
+					cerr << "one\n";
+				}
+				else
+					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 0);
 
 				// d. ノードの確率分布を更新する. Update probability of nodes.
 				for(int i=0;i<eval_cnt;++i){
@@ -1550,7 +1593,8 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 
 	Node* pn = &node[node_idx];
 	std::vector<Child*> rc;
-	SortChildren(pn, rc);
+	//SortChildren(pn, rc);
+	SortChildrenByRollout(pn, rc);
 
 	ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
 
@@ -1561,7 +1605,8 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 
 		if (game_cnt == 0) break;
 
-		double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
+		//double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
+		double rollout_rate = 2 * (pn->pl - 0.5) * pc->rollout_win / std::max(1, (int)pc->rollout_cnt);
 		double value_rate = (pc->value_win / std::max(1, (int)pc->value_cnt) + 1) / 2;
 		if(pc->value_win == 0.0) value_rate = 0;
 		if(pc->rollout_win == 0.0) rollout_rate = 0;
@@ -1581,7 +1626,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 		if(pc->value_cnt == 0) ost << "|" << std::setw(5) << "N/A";
 		else ost << "|" << std::setw(5) << std::fixed << value_rate * 100;
 		if(pc->rollout_cnt == 0) ost << "|" << std::setw(5) << "N/A";
-		else ost << "|" << std::setw(5) << std::fixed << rollout_rate * 100;
+		else ost << "|" << std::setw(6) << std::fixed << rollout_rate * 100;
 		ost << "|" << std::setw(5) << std::fixed << (double)pc->prob * 100;
 		ost.precision(prc);
 		ost << "|" << std::setw(5) << depth;
@@ -1596,7 +1641,8 @@ void Tree::PrintChildInfo(int node_idx, int next_move, std::ostream& ost, bool i
 
 	Node* pn = &node[node_idx];
 	std::vector<Child*> rc;
-	SortChildren(pn, rc);
+	//SortChildren(pn, rc);
+	SortChildrenByRollout(pn, rc);
 
 	int nc_idx = -1;
 	for(int i=0;i<(int)rc.size();++i){
@@ -1619,7 +1665,8 @@ void Tree::PrintChildInfo(int node_idx, int next_move, std::ostream& ost, bool i
 		int game_cnt = std::max((int)pc->rollout_cnt, (int)pc->value_cnt);
 		if (game_cnt == 0 && i >= 0) break;
 
-		double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
+		//double rollout_rate = (pc->rollout_win / std::max(1, (int)pc->rollout_cnt) + 1) / 2;
+		double rollout_rate = 2 * (pn->pl - 0.5) * pc->rollout_win / std::max(1, (int)pc->rollout_cnt);
 		double value_rate = (pc->value_win / std::max(1, (int)pc->value_cnt) + 1) / 2;
 		if(is_opp){
 			rollout_rate = 1 - rollout_rate;
@@ -1645,7 +1692,7 @@ void Tree::PrintChildInfo(int node_idx, int next_move, std::ostream& ost, bool i
 		if(pc->value_cnt == 0) ost << "|" << std::setw(5) << "N/A";
 		else ost << "|" << std::setw(5) << std::fixed << value_rate * 100;
 		if(pc->rollout_cnt == 0) ost << "|" << std::setw(5) << "N/A";
-		else ost << "|" << std::setw(5) << std::fixed << rollout_rate * 100;
+		else ost << "|" << std::setw(6) << std::fixed << rollout_rate * 100;
 		ost << "|" << std::setw(5) << std::fixed << (double)pc->prob * 100;
 		ost.precision(prc);
 		ost << "|" << std::setw(5) << depth;

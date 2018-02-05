@@ -161,6 +161,7 @@ public:
 struct PolicyEntry{
 	int node_idx;
 	FeedTensor ft;
+	int searchdepth;
 
 	PolicyEntry(){ node_idx = 0; }
 };

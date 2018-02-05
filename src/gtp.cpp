@@ -241,12 +241,15 @@ int CallGTP(){
 
 			SendGTP("= \n\n");
 		}
-		else if (FindStr(gtp_str, "genmove")) {
+		else if (FindStr(gtp_str, "genmove") || FindStr(gtp_str, "gm")) {
 			// Ÿ‚Ìè‚ğl‚¦‚Ä‘—M‚·‚é.
 			// Think and send the next move.
 			// "=genmove b", "=genmove white", ...
 
 			auto t1 = std::chrono::system_clock::now();
+			b.SelectKeypoint();
+			cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
+			cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 			//cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;
@@ -786,6 +789,34 @@ int CallGTP(){
 			if(!is_worker) tree.PrintResult(b);
 			SendGTP("= \n\n");
 			break;
+		}
+		else if (FindStr(gtp_str, "showboard"))
+		{
+			PrintBoard(b, b.prev_move[b.her]);
+		}
+		else if (FindStr(gtp_str, "keypoint") || FindStr(gtp_str, "keypoing"))
+		{
+			SplitString(gtp_str, " ", split_list);
+			if (split_list[0] == "=") split_list.erase(split_list.begin());
+
+			if (split_list[1] == "0" || split_list[1] == "-1")
+				cfg_custom_keypoint = stoi(split_list[1]);
+			else
+			{
+				string str_x = split_list[1].substr(0, 1);
+				string str_y = split_list[1].substr(1);
+
+				string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
+
+				int x = int(x_list.find(str_x)) % 19 + 1;
+				int y = stoi(str_y);
+
+				cfg_custom_keypoint = xytoe[x][y];
+			}
+
+			if (is_master) cluster.SendCommand(gtp_str);
+
+			SendGTP("= \n\n");
 		}
 		else{
 			SendGTP("= \n\n");

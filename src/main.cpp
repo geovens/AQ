@@ -107,8 +107,8 @@ void ReadConfiguration(int argc, char **argv){
 	ifs.close();
 
 	std::cerr << "configuration loaded.\n";
-	if(self_match) SelfMatch();
-
+	//if(self_match) SelfMatch();
+	if (self_match) DoSgfs();
 }
 
 
@@ -147,4 +147,63 @@ void SelfMatch() {
 	std::cerr << "finished.\n";
 	exit(0);
 
+}
+
+void DoSgfs()
+{
+	std::cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
+
+	Board b;
+	Tree tree;
+	tree.InitBoard();
+	std::vector<SgfData> sgf_list;
+	ImportSGFList(resume_sgf_path, sgf_list);
+
+	std::ofstream fo("output.txt");
+	fo.close();
+	std::string log_path = "log/0.txt";
+
+	std::ofstream flog(log_path);
+	flog << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
+	flog.close();
+
+	int fn = 0;
+	double winrate = 0.5;
+	for (SgfData sgf : sgf_list)
+	{
+		fn++;
+		std::cerr << "\n\n" << sgf.filepath << "\n";
+		tree.Clear();
+		tree.log_file = &flog;
+
+		sgf.GenerateBoard(b, sgf.move_cnt);
+		tree.UpdateRootNode(b);
+
+		int blackfirst = sgf.filepath.find("w") != std::string::npos ? 0 : 1;
+		if (blackfirst != b.my)
+		{
+			b.PlayLegal(PASS);
+			sgf.AddMove(PASS);
+			--b.pass_cnt[b.her];
+		}
+		b.SelectKeypoint();
+
+		std::cerr << "interested area is around " << CoordinateString(keypoint) << "\n";
+		flog.open(log_path, std::ios::app);
+		flog << "\n\n" << sgf.filepath << "\n";
+		flog << "interested area is around " << CoordinateString(keypoint) << "\n";
+		flog.close();
+
+		winrate = 0.5;
+		int next_move = tree.SearchTree(b, 0.0, winrate, true, false);
+		b.PlayLegal(next_move);
+		PrintBoard(b, next_move);
+
+		fo.open("output.txt", std::ios::app);
+		fo << sgf.filepath << "," << CoordinateString(next_move) << "\n";
+		fo.close();
+
+
+		PrintBoard(b, next_move, tree.log_file);
+	}
 }

@@ -19,7 +19,7 @@ int cfg_sym_idx = 0;
  */
 void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 		std::vector<std::array<double,EBVCNT>>& prob_list,
-		double temp, int sym_idx)
+		double temp, int sym_idx, int mod)
 {
 
 	prob_list.clear();
@@ -64,6 +64,7 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 		std::array<double, EBVCNT> prob;
 		prob.fill(0.0);
 
+		double sumprob = 0;
 		for(int j=0;j<BVCNT;++j){
 			int v = rtoe[j];
 
@@ -71,10 +72,44 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 			else if(sym_idx > 7) prob[v] = (double)policy(i, sv.rv[sym_idxs[i]][j][1]);
 			else prob[v] = (double)policy(i, sv.rv[sym_idx][j][1]);
 
+			if (keypoint > 0)
+			{
+				int dist = std::max(abs(etox[v] - etox[keypoint]), abs(etoy[v] - etoy[keypoint]));
+				if (dist < 4)
+				{
+					if (mod == 1)
+					{
+						if (prob[v] < 0.01)
+							prob[v] = 0.01;
+					}
+				}
+				else if (dist < 8)
+				{
+					if (mod == 1)
+					{
+						if (prob[v] < 0.001)
+							prob[v] = 0.001;
+					}
+				}
+				else
+				{
+					prob[v] = 0;
+				}
+			}
+
 			// 3線より中央側のシチョウを逃げる手の確率を下げる
 			// Reduce probability of moves escaping from Ladder.
 			if(ft_list[i].feature[j][LADDERESC] != 0 && DistEdge(v) > 2) prob[v] *= 0.001;
+
+			sumprob += prob[v];
 		}
+
+		// normalization
+		for (int j = 0; j < BVCNT; ++j) {
+			int v = rtoe[j];
+			prob[v] /= sumprob;
+		}
+
 		prob_list.push_back(prob);
 	}
 
