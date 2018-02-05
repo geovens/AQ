@@ -67,6 +67,8 @@ void SendCommandList(){
 	SendGTP("fixed_handicap\n");
 	SendGTP("set_free_handicap\n");
 	SendGTP("gogui-play_sequence\n");
+	SendGTP("keypoint\n");
+	SendGTP("showboard\n");
 	SendGTP("= \n\n");
 }
 
@@ -154,9 +156,9 @@ int CallGTP(){
 		if (gtp_str == "" || gtp_str == "\n"){
 			continue;
 		}
-		else if (FindStr(gtp_str, "name")) SendGTP("= AQ\n\n");
+		else if (FindStr(gtp_str, "name")) SendGTP("= AQ-PS\n\n");
 		else if (FindStr(gtp_str, "protocol_version")) SendGTP("= 2.0\n\n");
-		else if (FindStr(gtp_str, "version")) SendGTP("= 2.1.1\n\n");
+		else if (FindStr(gtp_str, "version")) SendGTP("= 2.1.1.1\n\n");
 		else if (FindStr(gtp_str, "boardsize")) {
 			// Board size setting. (only corresponding to 19 size)
 			// "=boardsize 19", "=boardsize 13", ...
