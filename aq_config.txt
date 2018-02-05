@@ -2,18 +2,18 @@
 # Set number of 1-8 for 'gpu count'.
 # 'thread count' is number of the total usable threads.
 -gpu count =1
--thread count =4
+-thread count =3
 
 ### Time contorol setting ###
 -main time[sec] =0
--byoyomi[sec] =5
--emergency time[sec] =15
+-byoyomi[sec] =20
+-emergency time[sec] =0
 
 ### Thinking setting ###
 -japanese rule =off
 -komi =7.5
 -symmetrical index =8
--use pondering =on
+-use pondering =off
 -mimic go =off
 -never resign =off
 
