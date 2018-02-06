@@ -1479,7 +1479,7 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 				if (pque_th[0].searchdepth < 1)
 				{
 					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 1);
-					cerr << "one\n";
+					//cerr << "one\n";
 				}
 				else
 					PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx, 0);

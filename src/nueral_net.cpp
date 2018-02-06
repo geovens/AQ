@@ -93,7 +93,7 @@ void PolicyNet(Session* sess, std::vector<FeedTensor>& ft_list,
 				}
 				else
 				{
-					prob[v] = 0;
+					prob[v] /= 30;
 				}
 			}
 
