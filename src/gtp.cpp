@@ -69,6 +69,7 @@ void SendCommandList(){
 	SendGTP("gogui-play_sequence\n");
 	SendGTP("keypoint\n");
 	SendGTP("showboard\n");
+	SendGTP("allow_illegal_ko\n");
 	SendGTP("= \n\n");
 }
 
@@ -819,6 +820,29 @@ int CallGTP(){
 				int y = stoi(str_y);
 
 				cfg_custom_keypoint = xytoe[x][y];
+			}
+
+			if (is_master) cluster.SendCommand(gtp_str);
+
+			SendGTP("= \n\n");
+		}
+		else if (FindStr(gtp_str, "allow_illegal_ko") || FindStr(gtp_str, "aik "))
+		{
+			if (FindStr(gtp_str, "black") || FindStr(gtp_str, " b"))
+			{
+				cfg_ko_threat_cnt[0] = 0;
+				cfg_ko_threat_cnt[1] = 1;
+
+			}
+			else if (FindStr(gtp_str, "white") || FindStr(gtp_str, " w"))
+			{
+				cfg_ko_threat_cnt[0] = 1;
+				cfg_ko_threat_cnt[1] = 0;
+			}
+			else if (FindStr(gtp_str, "none"))
+			{
+				cfg_ko_threat_cnt[0] = 0;
+				cfg_ko_threat_cnt[1] = 0;
 			}
 
 			if (is_master) cluster.SendCommand(gtp_str);
