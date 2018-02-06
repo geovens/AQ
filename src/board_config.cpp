@@ -2,5 +2,4 @@
 
 int keypoint = 0;
 int cfg_custom_keypoint = 0;
-double cfg_avoid_ko = 1;
-bool cfg_test_sgfs = false;
+int cfg_ko_threat_cnt[2] = { 1, 0 };

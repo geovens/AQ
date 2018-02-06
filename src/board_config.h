@@ -19,8 +19,7 @@
 // AQ-PS
 extern int keypoint;
 extern int cfg_custom_keypoint;
-extern double cfg_avoid_ko;
-extern bool cfg_test_sgfs;
+extern int cfg_ko_threat_cnt[2];
 
 // é¿î’ñ ÇÃÉTÉCÉY
 // Size of real board.

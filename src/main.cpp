@@ -108,8 +108,8 @@ void ReadConfiguration(int argc, char **argv){
 
 	std::cerr << "configuration loaded.\n";
 	//if(self_match) SelfMatch();
-	//if (self_match) DoSgfs();
-	if (self_match) Do1001Sgfs();
+	if (self_match) DoSgfs();
+	//if (self_match) Do1001Sgfs();
 }
 
 
@@ -152,8 +152,6 @@ void SelfMatch() {
 
 void DoSgfs()
 {
-	std::cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
-
 	Board b;
 	Tree tree;
 	tree.InitBoard();
@@ -165,7 +163,6 @@ void DoSgfs()
 	std::string log_path = "log/0.txt";
 
 	std::ofstream flog(log_path);
-	flog << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 	flog.close();
 
 	int fn = 0;
@@ -211,8 +208,6 @@ void DoSgfs()
 
 void Do1001Sgfs()
 {
-	std::cerr << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
-
 	Board b;
 	Tree tree;
 	tree.InitBoard();
@@ -224,7 +219,6 @@ void Do1001Sgfs()
 	std::string log_path = "log/0.txt";
 
 	std::ofstream flog(log_path);
-	flog << "ko is " << (cfg_avoid_ko > 0 ? "avoided" : "allowed") << "\n";
 	flog.close();
 
 	int fn = 0;

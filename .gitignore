@@ -1,7 +1,8 @@
 vs/build
 vs/bin
 vs/tensorflow
-test_problems
+test_problems/4
+test_problems/M
 release
 
 *.pdb

@@ -696,6 +696,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 		//    Calculate action value.
 		game_cnt = use_rollout? (double)pc->rollout_cnt : (double)pc->value_cnt;
 		//action_value = rate + cp * pc->prob * pn_root_game / (1 + game_cnt);
+		cp = 2.0 + b.searchdepth;
 		action_value = rate + cp * sqrt(pc->prob) * pn_root_game / (1 + game_cnt);
 
 		// d. max_idx‚ğXV. Update max_idx.
@@ -1044,7 +1045,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 
 	// 8-1. ‚¿ŠÔ‚ªc‚è­‚È‚¢‚Æ‚«‚Í’Tõ‚µ‚È‚¢
 	//      Return best move without searching when time is running out.
-	if(!is_ponder &&
+	if(false && !is_ponder &&
 		time_limit == 0.0 &&
 		byoyomi == 0.0 &&
 		left_time < cfg_emer_time){

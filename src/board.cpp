@@ -233,7 +233,9 @@ bool Board::IsLegal(int pl, int v) const{
 	assert(v <= PASS);
 
 	if (v == PASS) return true;
-	if (color[v] != 0 || v == ko) return false;
+	if (color[v] != 0) return false;
+
+	if (v == ko && cfg_ko_threat_cnt[pl] == 0) return false;
 
 	return ptn[v].IsLegal(pl);
 
