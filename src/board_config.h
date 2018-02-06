@@ -19,6 +19,7 @@
 // AQ-PS
 extern int keypoint;
 extern int cfg_custom_keypoint;
+extern int cfg_custom_keypoint_radius;
 extern int cfg_ko_threat_cnt[2];
 
 // é¿î’ñ ÇÃÉTÉCÉY

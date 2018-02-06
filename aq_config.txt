@@ -11,7 +11,7 @@
 
 ### Thinking setting ###
 -japanese rule =off
--komi =7.5
+-komi =0
 -symmetrical index =8
 -use pondering =off
 -mimic go =off

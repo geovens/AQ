@@ -109,7 +109,7 @@ int Win(Board& b, int pl, double komi) {
 				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
 				//score[stone_color] += 10 / (dist + 1) - 1;
 				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
-				if (dist < 5) score[stone_color]++;
+				if (dist < cfg_custom_keypoint_radius) score[stone_color]++;
 			}
 			else
 				score[stone_color]++;
@@ -121,7 +121,7 @@ int Win(Board& b, int pl, double komi) {
 						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
 						//score[stone_color] += 10 / (dist + 1) - 1;
 						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
-						if (dist < 5) score[stone_color]++;
+						if (dist < cfg_custom_keypoint_radius) score[stone_color]++;
 					}
 					else
 						score[stone_color]++;
@@ -257,7 +257,7 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
 				//score[stone_color] += 10 / (dist + 1) - 1;
 				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
-				if (dist < 5) score[stone_color]++;
+				if (dist < cfg_custom_keypoint_radius) score[stone_color]++;
 			}
 			else
 				score[stone_color]++;
@@ -272,7 +272,7 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
 						//score[stone_color] += 10 / (dist + 1) - 1;
 						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
-						if (dist < 5) score[stone_color]++;
+						if (dist < cfg_custom_keypoint_radius) score[stone_color]++;
 					}
 					else
 						score[stone_color]++;
@@ -407,7 +407,7 @@ double Score(Board& b, double komi) {
 				//double dist = abs(etox[i] - etox[keypoint]) + abs(etoy[i] - etoy[keypoint]);
 				//score[stone_color] += 10 / (dist + 1) - 1;
 				int dist = std::max(abs(etox[i] - etox[keypoint]), abs(etoy[i] - etoy[keypoint]));
-				if (dist < 5) score[stone_color]++;
+				if (dist < cfg_custom_keypoint_radius) score[stone_color]++;
 			}
 			else
 				score[stone_color]++;
@@ -419,7 +419,7 @@ double Score(Board& b, double komi) {
 						//double dist = abs(etox[v_nbr] - etox[keypoint]) + abs(etoy[v_nbr] - etoy[keypoint]);
 						//score[stone_color] += 10 / (dist + 1) - 1;
 						int dist = std::max(abs(etox[v_nbr] - etox[keypoint]), abs(etoy[v_nbr] - etoy[keypoint]));
-						if (dist < 5) score[stone_color]++;
+						if (dist < cfg_custom_keypoint_radius) score[stone_color]++;
 					}
 					else
 						score[stone_color]++;

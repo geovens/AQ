@@ -251,7 +251,7 @@ int CallGTP(){
 
 			auto t1 = std::chrono::system_clock::now();
 			b.SelectKeypoint();
-			cerr << "Interested area is around " << CoordinateString(keypoint) << "\n";
+			cerr << "Interested area is centered at " << CoordinateString(keypoint) << " and has a radius of " << cfg_custom_keypoint_radius << "\n";
 			if (cfg_ko_threat_cnt[1] > 0)
 				cerr << "Black has infinite ko threats (so black is allowed to play illegal ko)";
 			else if (cfg_ko_threat_cnt[0] > 0)
@@ -807,19 +807,29 @@ int CallGTP(){
 			SplitString(gtp_str, " ", split_list);
 			if (split_list[0] == "=") split_list.erase(split_list.begin());
 
-			if (split_list[1] == "0" || split_list[1] == "-1")
-				cfg_custom_keypoint = stoi(split_list[1]);
-			else
+			if (split_list.size() >= 2)
 			{
-				string str_x = split_list[1].substr(0, 1);
-				string str_y = split_list[1].substr(1);
+				if (split_list[1] == "0" || split_list[1] == "-1")
+					cfg_custom_keypoint = stoi(split_list[1]);
+				else
+				{
+					string str_x = split_list[1].substr(0, 1);
+					string str_y = split_list[1].substr(1);
 
-				string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
+					string x_list = "ABCDEFGHJKLMNOPQRSTabcdefghjklmnopqrst";
 
-				int x = int(x_list.find(str_x)) % 19 + 1;
-				int y = stoi(str_y);
+					int x = int(x_list.find(str_x)) % 19 + 1;
+					int y = stoi(str_y);
 
-				cfg_custom_keypoint = xytoe[x][y];
+					cfg_custom_keypoint = xytoe[x][y];
+				}
+
+				cfg_custom_keypoint_radius = 5;
+			}
+
+			if (split_list.size() >= 3)
+			{
+				cfg_custom_keypoint_radius = stoi(split_list[2]);
 			}
 
 			if (is_master) cluster.SendCommand(gtp_str);
