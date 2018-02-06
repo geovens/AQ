@@ -1597,7 +1597,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost){
 	//SortChildren(pn, rc);
 	SortChildrenByRollout(pn, rc);
 
-	ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
+	ost << "|move|count  |value|score |prob |depth| best sequence" << endl;
 
 	for(int i=0;i<std::min((int)pn->child_cnt, 10);++i) {
 
@@ -1655,7 +1655,7 @@ void Tree::PrintChildInfo(int node_idx, int next_move, std::ostream& ost, bool i
 		return;
 	}
 
-	ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
+	ost << "|move|count  |value|score |prob |depth| best sequence" << endl;
 
 	for(int i=-1;i<std::min((int)pn->child_cnt, 8);++i) {
 
@@ -1670,7 +1670,7 @@ void Tree::PrintChildInfo(int node_idx, int next_move, std::ostream& ost, bool i
 		double rollout_rate = 2 * (pn->pl - 0.5) * pc->rollout_win / std::max(1, (int)pc->rollout_cnt);
 		double value_rate = (pc->value_win / std::max(1, (int)pc->value_cnt) + 1) / 2;
 		if(is_opp){
-			rollout_rate = 1 - rollout_rate;
+			//rollout_rate = 1 - rollout_rate;
 			value_rate = 1 - value_rate;
 		}
 

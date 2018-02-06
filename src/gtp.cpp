@@ -251,14 +251,14 @@ int CallGTP(){
 
 			auto t1 = std::chrono::system_clock::now();
 			b.SelectKeypoint();
-			cerr << "Interested area is centered at " << CoordinateString(keypoint) << " and has a radius of " << cfg_custom_keypoint_radius << "\n";
+			cerr << "Interested area is centered at " << CoordinateString(keypoint) << " and has a radius of " << cfg_custom_keypoint_radius << endl;
 			if (cfg_ko_threat_cnt[1] > 0)
-				cerr << "Black has infinite ko threats (so black is allowed to play illegal ko)";
+				cerr << "Black is allowed to play illegal ko (as if he has infinite ko threats)" << endl;
 			else if (cfg_ko_threat_cnt[0] > 0)
-				cerr << "White has infinite ko threats (so white is allowed to play illegal ko)";
+				cerr << "White is allowed to play illegal ko (as if she has infinite ko threats)" << endl;
 			else
-				cerr << "Neither black nor white has any ko threat";
-			cerr << "thinking...\n";
+				cerr << "Illegal ko is not allowed" << endl;
+			//cerr << "thinking...\n";
 
 			pl = FindStr(gtp_str, "B", "b")? 1 : 0;
 			if(pl != b.my){

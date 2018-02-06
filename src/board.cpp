@@ -1611,8 +1611,6 @@ void Board::SelectKeypoint() {
 			if (ave_y > 16) ave_y++;
 			if (ave_y > 19) ave_y = 19;
 			keypoint = xytoe[ave_x][ave_y];
-			std::cerr << "keypoint:" << ave_x << " " << ave_y << " " << keypoint << " " << "\n";
-
 		}
 		else
 			keypoint = 0;
